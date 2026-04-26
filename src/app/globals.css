@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+:root {
+  --background: #F0F7F3;
+  --foreground: #1C2D24;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+
+  /* Zé Din Din brand palette */
+  --color-brand-950: #1C2D24;
+  --color-brand-800: #265C3A;
+  --color-brand-500: #5AB878;
+  --color-brand-200: #A8D8B6;
+  --color-brand-50:  #F0F7F3;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Inter, sans-serif;
+}
