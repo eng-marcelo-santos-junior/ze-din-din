@@ -1,0 +1,94 @@
+{% extends 'layout_private.html' %}
+{% block title %}Transferência entre contas{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{{ url_for('transactions.index') }}" class="text-decoration-none">Transações</a>
+</li>
+<li class="breadcrumb-item active">Transferência</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1">Transferência entre contas</h4>
+        <p class="text-muted small mb-0">
+            Move saldo de uma conta para outra. Duas transações serão criadas automaticamente.
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                {{ form.from_account_id.label(class='form-label fw-semibold') }}
+                                {{ form.from_account_id(class='form-select') }}
+                            </div>
+                            <div class="col-sm-6">
+                                {{ form.to_account_id.label(class='form-label fw-semibold') }}
+                                {{ form.to_account_id(class='form-select') }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                {{ form.amount.label(class='form-label fw-semibold') }}
+                                <div class="input-group">
+                                    <span class="input-group-text text-muted small">R$</span>
+                                    {{ form.amount(class='form-control' + (' is-invalid' if form.amount.errors else '')) }}
+                                </div>
+                                {% for e in form.amount.errors %}
+                                    <div class="invalid-feedback d-block">{{ e }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-sm-6">
+                                {{ form.transaction_date.label(class='form-label fw-semibold') }}
+                                {{ form.transaction_date(class='form-control', type='date') }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.description.label(class='form-label fw-semibold') }}
+                            {{ form.description(class='form-control' + (' is-invalid' if form.description.errors else '')) }}
+                            {% for e in form.description.errors %}
+                                <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.notes.label(class='form-label fw-semibold') }}
+                            {{ form.notes(class='form-control') }}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {{ form.submit(class='btn btn-primary') }}
+                            <a href="{{ url_for('transactions.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 mt-3 mt-lg-0">
+            <div class="card border-0 shadow-sm border-start border-info border-3">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-info-circle text-info me-2"></i>Como funciona
+                    </h6>
+                    <ul class="small text-muted mb-0 ps-3">
+                        <li class="mb-2">O saldo da <strong>conta origem</strong> será reduzido pelo valor informado.</li>
+                        <li class="mb-2">O saldo da <strong>conta destino</strong> será aumentado pelo mesmo valor.</li>
+                        <li class="mb-2">Duas transações vinculadas serão criadas automaticamente.</li>
+                        <li>As contas de origem e destino devem ser <strong>diferentes</strong>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

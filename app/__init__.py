@@ -45,4 +45,7 @@ def create_app(config_name: str = 'default') -> Flask:
     from .categories import categories_bp
     app.register_blueprint(categories_bp)
 
+    from .transactions import transactions_bp
+    app.register_blueprint(transactions_bp)
+
     return app

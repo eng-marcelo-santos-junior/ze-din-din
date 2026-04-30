@@ -43,10 +43,10 @@
             </li>
 
             <li class="mb-1">
-                <span class="sidebar-link" style="opacity:.45; cursor:default;">
+                <a href="{{ url_for('transactions.index') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('transactions.') else '' }}">
                     <i class="bi bi-arrow-left-right me-2"></i>Transações
-                    <span class="badge bg-secondary ms-auto" style="font-size:10px;">Breve</span>
-                </span>
+                </a>
             </li>
 
             <li class="mb-1">
