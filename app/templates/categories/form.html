@@ -1,0 +1,107 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}{{ 'Editar categoria' if category else 'Nova categoria' }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{{ url_for('categories.index') }}" class="text-decoration-none">Categorias</a>
+</li>
+<li class="breadcrumb-item active">{{ 'Editar' if category else 'Nova categoria' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1">{{ 'Editar categoria' if category else 'Nova categoria' }}</h4>
+        <p class="text-muted mb-0 small">
+            {% if category %}Edite a categoria <strong>{{ category.name }}</strong>.
+            {% else %}Crie uma nova categoria para classificar suas transações.{% endif %}
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ form.name.label(class='form-label fw-semibold') }}
+                            {{ form.name(class='form-control' + (' is-invalid' if form.name.errors else '')) }}
+                            {% for e in form.name.errors %}
+                                <div class="invalid-feedback">{{ e }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                {{ form.type.label(class='form-label fw-semibold') }}
+                                {{ form.type(class='form-select') }}
+                            </div>
+                            <div class="col-sm-6">
+                                {{ form.parent_id.label(class='form-label fw-semibold') }}
+                                {{ form.parent_id(class='form-select') }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                {{ form.color.label(class='form-label fw-semibold') }}
+                                {{ form.color(class='form-select') }}
+                            </div>
+                            <div class="col-sm-6">
+                                {{ form.icon.label(class='form-label fw-semibold') }}
+                                {{ form.icon(class='form-select') }}
+                            </div>
+                        </div>
+
+                        {# Preview #}
+                        <div class="mb-4 p-3 rounded-3 bg-light d-flex align-items-center gap-3">
+                            <span id="preview-icon-box"
+                                  class="rounded-2 d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                                  style="background:#6c757d22; width:36px; height:36px;">
+                                <i id="preview-icon" class="bi bi-tag" style="color:#6c757d; font-size:1.1rem;"></i>
+                            </span>
+                            <span id="preview-name" class="fw-semibold text-muted">Pré-visualização</span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {{ form.submit(class='btn btn-success') }}
+                            <a href="{{ url_for('categories.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const nameInput   = document.getElementById('name');
+const colorSelect = document.getElementById('color');
+const iconSelect  = document.getElementById('icon');
+const previewName = document.getElementById('preview-name');
+const previewIcon = document.getElementById('preview-icon');
+const previewBox  = document.getElementById('preview-icon-box');
+
+function updatePreview() {
+    const color = colorSelect.value;
+    const icon  = iconSelect.value;
+    const name  = nameInput.value || 'Pré-visualização';
+    previewName.textContent = name;
+    previewIcon.className   = `bi ${icon}`;
+    previewIcon.style.color = color;
+    previewBox.style.background = color + '22';
+}
+
+nameInput.addEventListener('input', updatePreview);
+colorSelect.addEventListener('change', updatePreview);
+iconSelect.addEventListener('change', updatePreview);
+updatePreview();
+</script>
+{% endblock %}

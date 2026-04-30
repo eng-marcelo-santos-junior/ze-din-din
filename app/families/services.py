@@ -3,6 +3,8 @@ from app.models.family import Family, FamilyMember, FamilyRole, FamilyMemberStat
 
 
 def create_family(name: str, currency: str, owner_user_id: int) -> Family:
+    from app.categories.services import seed_default_categories
+
     family = Family(name=name.strip(), currency=currency, created_by=owner_user_id)
     db.session.add(family)
     db.session.flush()
@@ -14,6 +16,7 @@ def create_family(name: str, currency: str, owner_user_id: int) -> Family:
         status=FamilyMemberStatus.ACTIVE,
     )
     db.session.add(owner)
+    seed_default_categories(family.id)
     db.session.commit()
     return family
 

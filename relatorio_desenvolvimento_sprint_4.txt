@@ -1,0 +1,122 @@
+==================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 4
+Zé Din Din — Gestão Financeira Doméstica
+==================================================
+
+Data: 2026-04-30
+Sprint: 4 — Contas e Categorias
+Status: Concluída
+
+==================================================
+1. RESUMO DO QUE FOI CRIADO
+==================================================
+
+Esta sprint implementou os cadastros financeiros fundamentais:
+contas e categorias, com valores sempre em centavos (Integer).
+
+1.1 Modelos
+  - Account: conta financeira com 12 campos, AccountType e AccountVisibility
+  - Category: categoria com suporte a subcategorias (parent_id auto-referencial)
+  - CategoryType: INCOME e EXPENSE
+
+1.2 Utilitário money.py (app/utils/)
+  - parse_money_to_cents: converte "1.234,56" → 123456
+  - format_cents_to_money: converte 123456 → "1.234,56"
+  - Filtro Jinja2 `| money` registrado globalmente
+
+1.3 Blueprint accounts (app/accounts/)
+  - GET  /accounts              — listagem com saldo total
+  - GET  /accounts/new          — formulário de criação
+  - POST /accounts/new          — salva nova conta
+  - GET  /accounts/<id>/edit    — formulário de edição
+  - POST /accounts/<id>/edit    — salva edição
+  - POST /accounts/<id>/archive — arquiva conta
+
+1.4 Blueprint categories (app/categories/)
+  - GET  /categories              — listagem em abas (Despesas / Receitas)
+  - GET  /categories/new          — formulário de criação com pré-visualização
+  - POST /categories/new          — salva nova categoria
+  - GET  /categories/<id>/edit    — formulário de edição
+  - POST /categories/<id>/edit    — salva edição
+  - POST /categories/<id>/archive — arquiva categoria
+
+1.5 Categorias padrão
+  - 5 categorias de receita + 14 de despesa criadas automaticamente
+    ao criar uma nova família (via seed_default_categories)
+
+1.6 Sidebar atualizada
+  - Links Contas e Categorias ativos e funcionais
+
+1.7 Testes (96 total, todos passando)
+  - test_money.py:      19 testes (parse e format)
+  - test_accounts.py:   21 testes (CRUD, isolamento, rotas)
+  - test_categories.py: 20 testes (seed, CRUD, isolamento, rotas)
+  - Sprints anteriores: 38 testes mantidos (100% passando)
+
+==================================================
+2. ESTRUTURA DE PASTAS RELEVANTE
+==================================================
+
+app/
+  accounts/
+    __init__.py
+    forms.py
+    routes.py
+    services.py
+  categories/
+    __init__.py
+    forms.py
+    routes.py
+    services.py
+  models/
+    account.py    ← novo
+    category.py   ← novo
+    __init__.py   ← atualizado
+  utils/
+    money.py      ← novo
+  templates/
+    accounts/
+      index.html
+      form.html
+    categories/
+      index.html
+      form.html
+
+migrations/versions/
+  0ec523b8af8e_adiciona_tabelas_accounts_e_categories.py  ← novo
+
+tests/
+  test_money.py       ← novo
+  test_accounts.py    ← novo
+  test_categories.py  ← novo
+
+==================================================
+3. ROTAS DISPONÍVEIS NA SPRINT 4
+==================================================
+
+Sprint 1: GET /
+Sprint 2: GET|POST /auth/login, /auth/register, GET /auth/logout
+Sprint 3: GET /dashboard, GET|POST /families/new, /families/settings,
+          GET /families/members
+Sprint 4: GET /accounts, GET|POST /accounts/new,
+          GET|POST /accounts/<id>/edit, POST /accounts/<id>/archive,
+          GET /categories, GET|POST /categories/new,
+          GET|POST /categories/<id>/edit, POST /categories/<id>/archive
+
+==================================================
+4. PRÓXIMOS PASSOS RECOMENDADOS (SPRINT 5)
+==================================================
+
+Sprint 5 — Transações:
+
+1. Criar model Transaction com todos os campos especificados
+2. Criar blueprint transactions
+3. CRUD de receitas e despesas
+4. Transferência entre contas (transfer_group_id)
+5. Transação parcelada (installment_group_id)
+6. Atualização automática de saldo da conta ao criar/editar/excluir
+7. Filtros por período, conta, categoria
+8. Listagem paginada
+9. Exportação CSV
+10. Atualizar dashboard com dados reais de transações
+11. Testes de saldo (receita aumenta, despesa diminui)

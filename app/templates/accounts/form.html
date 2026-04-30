@@ -1,0 +1,97 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}{{ 'Editar conta' if account else 'Nova conta' }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+    <a href="{{ url_for('accounts.index') }}" class="text-decoration-none">Contas</a>
+</li>
+<li class="breadcrumb-item active">{{ 'Editar' if account else 'Nova conta' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+    <div class="mb-4">
+        <h4 class="fw-bold mb-1">{{ 'Editar conta' if account else 'Nova conta' }}</h4>
+        <p class="text-muted mb-0 small">
+            {% if account %}Edite os dados da conta <strong>{{ account.name }}</strong>.
+            {% else %}Adicione uma nova conta à família.{% endif %}
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-8">
+                                {{ form.name.label(class='form-label fw-semibold') }}
+                                {{ form.name(class='form-control' + (' is-invalid' if form.name.errors else '')) }}
+                                {% for e in form.name.errors %}
+                                    <div class="invalid-feedback">{{ e }}</div>
+                                {% endfor %}
+                            </div>
+                            <div class="col-sm-4">
+                                {{ form.type.label(class='form-label fw-semibold') }}
+                                {{ form.type(class='form-select' + (' is-invalid' if form.type.errors else '')) }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                {{ form.institution.label(class='form-label fw-semibold') }}
+                                {{ form.institution(class='form-control' + (' is-invalid' if form.institution.errors else '')) }}
+                            </div>
+                            <div class="col-sm-3">
+                                {{ form.initial_balance.label(class='form-label fw-semibold') }}
+                                <div class="input-group">
+                                    <span class="input-group-text text-muted small">R$</span>
+                                    {{ form.initial_balance(class='form-control' + (' is-invalid' if form.initial_balance.errors else '')) }}
+                                </div>
+                            </div>
+                            <div class="col-sm-3">
+                                {{ form.currency.label(class='form-label fw-semibold') }}
+                                {{ form.currency(class='form-select') }}
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-4">
+                                {{ form.color.label(class='form-label fw-semibold') }}
+                                {{ form.color(class='form-select') }}
+                            </div>
+                            <div class="col-sm-8">
+                                {{ form.visibility.label(class='form-label fw-semibold') }}
+                                {{ form.visibility(class='form-select') }}
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {{ form.submit(class='btn btn-success') }}
+                            <a href="{{ url_for('accounts.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5 mt-3 mt-lg-0">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>Dica</h6>
+                </div>
+                <div class="card-body p-4 small text-muted">
+                    <p><strong>Saldo inicial:</strong> informe o saldo atual da conta, no formato <code>1.234,56</code>.</p>
+                    <p><strong>Conta privada:</strong> visível apenas para você; os outros membros não veem esta conta.</p>
+                    <p class="mb-0"><strong>O ícone</strong> é definido automaticamente pelo tipo da conta.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

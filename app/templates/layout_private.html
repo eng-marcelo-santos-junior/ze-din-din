@@ -50,17 +50,17 @@
             </li>
 
             <li class="mb-1">
-                <span class="sidebar-link" style="opacity:.45; cursor:default;">
+                <a href="{{ url_for('accounts.index') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('accounts.') else '' }}">
                     <i class="bi bi-bank me-2"></i>Contas
-                    <span class="badge bg-secondary ms-auto" style="font-size:10px;">Breve</span>
-                </span>
+                </a>
             </li>
 
             <li class="mb-1">
-                <span class="sidebar-link" style="opacity:.45; cursor:default;">
+                <a href="{{ url_for('categories.index') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('categories.') else '' }}">
                     <i class="bi bi-tags me-2"></i>Categorias
-                    <span class="badge bg-secondary ms-auto" style="font-size:10px;">Breve</span>
-                </span>
+                </a>
             </li>
 
             <li class="mb-1">

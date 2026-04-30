@@ -15,6 +15,9 @@ def create_app(config_name: str = 'default') -> Flask:
 
     from . import models  # noqa
 
+    from .utils.money import format_cents_to_money
+    app.jinja_env.filters['money'] = format_cents_to_money
+
     @app.context_processor
     def inject_globals():
         from flask_login import current_user
@@ -35,5 +38,11 @@ def create_app(config_name: str = 'default') -> Flask:
 
     from .families import families_bp
     app.register_blueprint(families_bp)
+
+    from .accounts import accounts_bp
+    app.register_blueprint(accounts_bp)
+
+    from .categories import categories_bp
+    app.register_blueprint(categories_bp)
 
     return app

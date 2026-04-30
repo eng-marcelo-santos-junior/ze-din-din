@@ -1134,7 +1134,7 @@ Ao final, entregue:
 - README completo
 - Documentação técnica
 
-Depois da implementação, apresente:
+Depois da implementação crie um arquivo chamado relatorio_desenvolvimento_sprint_[numero da sprint] e apresente:
 
 - Resumo do que foi criado
 - Estrutura de pastas
