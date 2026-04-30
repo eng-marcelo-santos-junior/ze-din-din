@@ -1,0 +1,159 @@
+================================================================================
+ZÉ DIN DIN — RELATÓRIO DE DESENVOLVIMENTO
+Sprint 1: Setup Inicial
+Data: 2026-04-29
+================================================================================
+
+
+1. RESUMO DO QUE FOI FEITO
+================================================================================
+
+Criada a fundação completa da aplicação Flask com arquitetura modular,
+infraestrutura Docker e página inicial pública. A aplicação sobe com um
+comando, conecta no PostgreSQL e serve a landing page do Zé Din Din via
+Blueprint "main".
+
+
+2. ARQUIVOS CRIADOS OU ALTERADOS
+================================================================================
+
+Arquivo                              Status      Descrição
+----------------------------------------------------------------------
+run.py                               Criado      Entry point Flask com dotenv
+app/__init__.py                      Criado      Application Factory
+app/config.py                        Criado      DevelopmentConfig, TestingConfig, ProductionConfig
+app/extensions.py                    Criado      db, migrate, login_manager, csrf
+app/main/__init__.py                 Criado      Blueprint público
+app/main/routes.py                   Criado      Rota GET /
+app/templates/base.html              Criado      Layout base Bootstrap 5.3 + Bootstrap Icons + Chart.js
+app/templates/main/index.html        Criado      Landing page (hero, features, steps, CTA)
+app/static/css/main.css              Criado      Tema verde, stat-cards, sidebar, utilitários financeiros
+app/static/js/main.js                Criado      Auto-dismiss alerts, sidebar toggle, confirm dialogs, formatMoney
+Dockerfile                           Criado      Python 3.12-slim, psycopg2, gunicorn
+docker-compose.yml                   Criado      Serviços web (Flask) e db (PostgreSQL 16)
+docker/init.sql                      Criado      Cria banco zedindin_test automaticamente
+Makefile                             Criado      Atalhos: build, up, down, migrate, test, lint, format
+requirements.txt                     Criado      Dependências de produção
+requirements-dev.txt                 Criado      + pytest, black, ruff, isort
+pyproject.toml                       Criado      Config pytest, black, ruff, isort
+.env.example                         Criado      Template de variáveis de ambiente
+.gitignore                           Criado      Python, venv, .env, IDE, Docker
+tests/__init__.py                    Criado      Pacote de testes
+docs/architecture.md                 Criado      Diagrama de fluxo e regras de arquitetura
+README.md                            Criado      Objetivo, stack, Docker, migrations, testes, estrutura
+CLAUDE.md                            Criado      Contexto completo para o assistente
+
+
+3. COMO TESTAR MANUALMENTE
+================================================================================
+
+1. Subir a aplicação:
+
+   make build
+   make up
+
+2. Verificar se os containers estão rodando:
+
+   docker compose ps
+
+   Esperado: "web" e "db" com status "running".
+
+3. Verificar logs:
+
+   make logs
+
+   Esperado: Running on http://0.0.0.0:5000
+
+4. Acessar no navegador:
+
+   http://localhost:5000
+
+   Esperado: landing page do Zé Din Din com hero verde,
+   6 cards de features e seção de 3 passos.
+
+5. Testar conexão com o banco:
+
+   make psql
+
+   Dentro do psql:
+     \l    (lista os bancos)
+     \q    (sair)
+
+   Esperado: bancos "zedindin_dev" e "zedindin_test" presentes.
+
+
+4. COMANDOS NECESSÁRIOS
+================================================================================
+
+# Primeira vez
+cp .env.example .env
+make build
+make up
+
+# Dia a dia
+make up          # sobe containers
+make down        # para containers
+make logs        # acompanha logs do Flask
+
+# Banco
+make psql        # acessa o PostgreSQL diretamente
+
+# Migrations (a partir do Sprint 2)
+make migrate-init      # flask db init (apenas uma vez)
+make migrate           # flask db upgrade
+make migration msg=""  # flask db migrate -m "descricao"
+
+# Testes (a partir do Sprint 2)
+make test
+make test-cov
+
+# Qualidade de código (requer requirements-dev.txt)
+make lint
+make format
+
+
+5. POSSÍVEIS LIMITAÇÕES
+================================================================================
+
+Limitação                  Detalhe
+----------------------------------------------------------------------
+Sem migrations ainda       flask db init não foi rodado. Sem models,
+                           não há nada para migrar. Será feito no Sprint 2.
+
+Sem autenticação           Os links "Entrar" e "Criar conta" na landing
+                           page são href="#". Implementados no Sprint 2.
+
+Sem testes funcionais      Só existe tests/__init__.py. Os testes serão
+                           escritos a partir do Sprint 2, com os primeiros
+                           services.
+
+current_user no template   Requer Flask-Login inicializado — já configurado
+                           em extensions.py, mas current_user.is_authenticated
+                           será sempre False até o Sprint 2.
+
+Sem HTTPS                  Configuração de produção (Gunicorn + proxy reverso)
+                           não está no escopo do Sprint 1.
+
+
+6. PRÓXIMOS PASSOS — SPRINT 2
+================================================================================
+
+Objetivo: Autenticação completa + grupo familiar + dashboard básico.
+
+Tarefas previstas:
+
+  - Models User, Family, FamilyMember em app/models/
+  - Repositories user_repository.py, family_repository.py
+  - Utils money.py, dates.py, permissions.py, decorators.py
+  - Blueprint auth: cadastro, login, logout
+  - Blueprint families: criar família, convidar membros, definir roles
+  - Blueprint dashboard: tela principal com cards de resumo
+  - Layout base.html com sidebar para área autenticada
+  - Templates: auth/login.html, auth/register.html, dashboard/index.html
+  - Primeira migration com flask db migrate
+  - Testes: tests/unit/test_money.py, tests/integration/test_auth.py
+
+
+================================================================================
+Fim do relatório — Sprint 1
+================================================================================

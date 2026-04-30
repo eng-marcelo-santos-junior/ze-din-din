@@ -1,0 +1,148 @@
+/* ============================================================
+   Zé Din Din — Main Stylesheet
+   ============================================================ */
+
+:root {
+    --zdd-green:         #198754;
+    --zdd-green-dark:    #146c43;
+    --zdd-green-light:   #d1e7dd;
+    --zdd-gold:          #ffc107;
+    --zdd-sidebar-width: 260px;
+    --zdd-sidebar-bg:    #1a2332;
+}
+
+/* ── Base ─────────────────────────────────────────────────── */
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* ── Hero section ─────────────────────────────────────────── */
+
+.hero-section {
+    background: linear-gradient(135deg, #0f4c2a 0%, #146c43 40%, #198754 75%, #20c997 100%);
+    min-height: 85vh;
+    display: flex;
+    align-items: center;
+}
+
+/* ── CTA section ──────────────────────────────────────────── */
+
+.cta-section {
+    background: linear-gradient(135deg, #146c43 0%, #198754 100%);
+}
+
+/* ── Feature cards ────────────────────────────────────────── */
+
+.feature-card {
+    border-radius: 14px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ── Steps ────────────────────────────────────────────────── */
+
+.step-circle {
+    width: 64px;
+    height: 64px;
+    background-color: var(--zdd-green);
+}
+
+/* ── Financial colors ─────────────────────────────────────── */
+
+.text-income  { color: #198754 !important; }
+.text-expense { color: #dc3545 !important; }
+.text-neutral { color: #6c757d !important; }
+
+.bg-income    { background-color: #d1e7dd !important; }
+.bg-expense   { background-color: #f8d7da !important; }
+
+/* ── Stat cards (dashboard) ───────────────────────────────── */
+
+.stat-card {
+    border: none;
+    border-radius: 12px;
+    border-left: 4px solid var(--zdd-green);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.income  { border-left-color: #198754; }
+.stat-card.expense { border-left-color: #dc3545; }
+.stat-card.balance { border-left-color: #0d6efd; }
+.stat-card.result  { border-left-color: #ffc107; }
+
+/* ── Sidebar (dashboard layout — Sprint 2+) ───────────────── */
+
+.sidebar {
+    width: var(--zdd-sidebar-width);
+    min-height: 100vh;
+    background-color: var(--zdd-sidebar-bg);
+    flex-shrink: 0;
+    transition: width 0.25s ease;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 0.65rem 1.25rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background-color 0.15s, color 0.15s;
+    border-radius: 6px;
+    margin: 2px 8px;
+}
+
+.sidebar-link:hover,
+.sidebar-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.sidebar-link.active {
+    background-color: var(--zdd-green);
+    color: #fff;
+}
+
+/* ── Tables ───────────────────────────────────────────────── */
+
+.table-hover tbody tr:hover {
+    background-color: rgba(25, 135, 84, 0.04);
+}
+
+/* ── Badges ───────────────────────────────────────────────── */
+
+.badge-income  { background-color: #d1e7dd; color: #0a3622; }
+.badge-expense { background-color: #f8d7da; color: #58151c; }
+
+/* ── Forms ────────────────────────────────────────────────── */
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--zdd-green);
+    box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.2);
+}
+
+/* ── Utilities ────────────────────────────────────────────── */
+
+.cursor-pointer { cursor: pointer; }
+
+.rounded-xl { border-radius: 14px !important; }
+
+.shadow-card { box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08); }

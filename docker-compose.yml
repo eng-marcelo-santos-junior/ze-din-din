@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: zedindin
+      POSTGRES_PASSWORD: zedindin
+      POSTGRES_DB: zedindin_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zedindin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      FLASK_APP: run.py
+      FLASK_CONFIG: development
+      SECRET_KEY: dev-secret-key-change-in-production
+      DATABASE_URL: postgresql://zedindin:zedindin@db:5432/zedindin_dev
+      TEST_DATABASE_URL: postgresql://zedindin:zedindin@db:5432/zedindin_test
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

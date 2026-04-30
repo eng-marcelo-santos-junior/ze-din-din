@@ -1,36 +1,151 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Zé Din Din 💰
 
-## Getting Started
+Aplicação web de gestão financeira doméstica familiar.
 
-First, run the development server:
+## Objetivo
+
+Permitir que famílias controlem receitas, despesas, contas bancárias, cartões de crédito, orçamentos, metas financeiras e relatórios em um só lugar.
+
+## Stack
+
+| Camada | Tecnologia |
+|--------|-----------|
+| Backend | Python 3.12, Flask 3.1 |
+| Autenticação | Flask-Login |
+| Formulários | Flask-WTF / WTForms |
+| ORM | Flask-SQLAlchemy |
+| Migrações | Flask-Migrate / Alembic |
+| Banco | PostgreSQL 16 |
+| Frontend | Bootstrap 5.3, Jinja2 |
+| Gráficos | Chart.js 4 |
+| Deploy | Docker, Docker Compose, Gunicorn |
+| Testes | Pytest, pytest-flask |
+
+## Pré-requisitos
+
+- Docker e Docker Compose instalados
+- (Opcional) Python 3.12+ para desenvolvimento local
+
+## Como rodar com Docker Compose
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# 1. Clone o repositório
+git clone <url-do-repo>
+cd ze-din-din
+
+# 2. Copie e configure o .env
+cp .env.example .env
+
+# 3. Suba os containers
+docker compose up -d
+
+# 4. Execute as migrations
+docker compose exec web flask db upgrade
+
+# 5. Acesse no navegador
+# http://localhost:5000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configurar o .env
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Edite o `.env` com suas configurações:
 
-## Learn More
+| Variável | Descrição | Padrão |
+|----------|-----------|--------|
+| `FLASK_CONFIG` | Ambiente (`development`, `production`) | `development` |
+| `SECRET_KEY` | Chave secreta da sessão | Altere obrigatoriamente |
+| `DATABASE_URL` | URL do PostgreSQL | postgresql://zedindin:zedindin@localhost:5432/zedindin_dev |
 
-To learn more about Next.js, take a look at the following resources:
+## Como rodar migrations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Inicializar (apenas na primeira vez, sem Docker):
+flask db init
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Gerar uma nova migration:
+make migration msg="descricao da mudanca"
+# ou:
+docker compose exec web flask db migrate -m "descricao"
 
-## Deploy on Vercel
+# Aplicar migrations:
+make migrate
+# ou:
+docker compose exec web flask db upgrade
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Como rodar testes
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+make test
+# ou:
+docker compose exec web pytest -v
+
+# Com cobertura:
+make test-cov
+```
+
+## Comandos úteis
+
+```bash
+make build      # Rebuild dos containers
+make up         # Sobe containers em background
+make down       # Para containers
+make logs       # Logs do container web
+make shell      # Flask shell interativo
+make psql       # psql no banco de desenvolvimento
+make lint       # Verifica qualidade do código
+make format     # Formata código com black + isort
+```
+
+## Estrutura do projeto
+
+```
+ze-din-din/
+├── app/
+│   ├── __init__.py         # Application Factory
+│   ├── config.py           # Configurações por ambiente
+│   ├── extensions.py       # Extensões Flask (db, login, csrf...)
+│   ├── main/               # Blueprint público (home)
+│   ├── auth/               # Autenticação (Sprint 2)
+│   ├── dashboard/          # Dashboard principal (Sprint 2)
+│   ├── families/           # Gestão de família (Sprint 2)
+│   ├── accounts/           # Contas financeiras (Sprint 3)
+│   ├── transactions/       # Transações (Sprint 3)
+│   ├── categories/         # Categorias (Sprint 3)
+│   ├── models/             # Models SQLAlchemy centralizados
+│   ├── repositories/       # Queries complexas
+│   ├── utils/              # Helpers (money, dates, permissions)
+│   ├── templates/          # Templates Jinja2
+│   └── static/             # CSS, JS, imagens
+├── migrations/             # Alembic migrations
+├── tests/                  # Testes Pytest
+├── docs/                   # Documentação técnica
+├── docker/
+│   └── init.sql            # Cria banco de teste
+├── run.py                  # Entry point Flask
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+└── .env.example
+```
+
+## Regras de negócio principais
+
+- Valores monetários armazenados em **centavos (Integer)** — nunca float
+- Toda entidade financeira possui `family_id`
+- Usuários só acessam dados da própria família
+- Roles de membros: `OWNER`, `ADMIN`, `MEMBER`, `RESTRICTED`
+
+## Sprints
+
+| Sprint | Escopo | Status |
+|--------|--------|--------|
+| 1 | Setup inicial, Docker, estrutura base | ✅ Concluído |
+| 2 | Autenticação, família, dashboard | 🔜 |
+| 3 | Contas, categorias, transações | 🔜 |
+| 4 | Orçamentos, contas a pagar, cartões | 🔜 |
+| 5 | Metas, relatórios, importação CSV | 🔜 |

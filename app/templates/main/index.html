@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Zé Din Din — Gestão Financeira Familiar{% endblock %}
+
+{% block navbar %}
+<nav class="navbar navbar-expand-lg navbar-dark position-absolute w-100" style="z-index: 100; background: transparent;">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-5" href="{{ url_for('main.index') }}">
+            <i class="bi bi-coin text-warning me-1"></i>Zé Din Din
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#heroNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="heroNav">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item">
+                    <a class="nav-link text-white fw-medium" href="#">Entrar</a>
+                </li>
+                <li class="nav-item">
+                    <a class="btn btn-warning text-dark fw-semibold px-4" href="#">
+                        Começar grátis
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+{# ── Hero ────────────────────────────────────────────────────────────────── #}
+<section class="hero-section text-white position-relative">
+    <div class="container py-5 text-center position-relative" style="z-index: 1;">
+        <div class="py-5 mt-4">
+            <span class="badge rounded-pill bg-warning text-dark mb-4 px-3 py-2 fs-6 shadow">
+                <i class="bi bi-stars me-1"></i>Controle financeiro simples e eficiente
+            </span>
+            <h1 class="display-3 fw-bold mb-4 lh-sm">
+                Organize as finanças<br>
+                <span class="text-warning">da sua família</span>
+            </h1>
+            <p class="lead mb-5 mx-auto opacity-90" style="max-width: 560px;">
+                Controle receitas, despesas, cartões, metas e orçamentos da família
+                em um só lugar. Simples no dia a dia, poderoso no planejamento.
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a href="#" class="btn btn-warning btn-lg text-dark fw-bold px-5 shadow-lg">
+                    <i class="bi bi-rocket-takeoff me-2"></i>Começar grátis
+                </a>
+                <a href="#features" class="btn btn-outline-light btn-lg px-5">
+                    Saiba mais <i class="bi bi-arrow-down ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── Stats bar ───────────────────────────────────────────────────────────── #}
+<div class="bg-success border-top border-success-subtle py-3">
+    <div class="container">
+        <div class="row text-white text-center gy-2">
+            <div class="col-6 col-md-3">
+                <div class="fw-bold fs-5"><i class="bi bi-gift me-1"></i>Gratuito</div>
+                <small class="opacity-75">Sem custo inicial</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fw-bold fs-5"><i class="bi bi-people me-1"></i>Multi-usuário</div>
+                <small class="opacity-75">Toda a família junta</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fw-bold fs-5"><i class="bi bi-shield-check me-1"></i>Seguro</div>
+                <small class="opacity-75">Seus dados protegidos</small>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fw-bold fs-5"><i class="bi bi-phone me-1"></i>Responsivo</div>
+                <small class="opacity-75">Desktop e mobile</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── Features ────────────────────────────────────────────────────────────── #}
+<section id="features" class="py-6 bg-white">
+    <div class="container py-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-6">Tudo que sua família precisa</h2>
+            <p class="text-muted lead">De lançamentos simples ao planejamento de longo prazo</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 p-4 border-0 shadow-sm">
+                    <div class="d-inline-flex bg-success-subtle rounded-3 p-3 mb-3">
+                        <i class="bi bi-arrow-left-right text-success fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Transações</h5>
+                    <p class="text-muted mb-0">Lance receitas e despesas rapidamente. Categorize, filtre por período e acompanhe todo o histórico.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 p-4 border-0 shadow-sm">
+                    <div class="d-inline-flex bg-primary-subtle rounded-3 p-3 mb-3">
+                        <i class="bi bi-credit-card-2-front text-primary fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Cartões de crédito</h5>
+                    <p class="text-muted mb-0">Controle faturas, parcelamentos e limite disponível. Saiba exatamente quando a fatura fecha e vence.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 p-4 border-0 shadow-sm">
+                    <div class="d-inline-flex bg-warning-subtle rounded-3 p-3 mb-3">
+                        <i class="bi bi-bullseye text-warning fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Metas financeiras</h5>
+                    <p class="text-muted mb-0">Defina objetivos como reserva de emergência, viagem ou compra e acompanhe o progresso em tempo real.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 p-4 border-0 shadow-sm">
+                    <div class="d-inline-flex bg-info-subtle rounded-3 p-3 mb-3">
+                        <i class="bi bi-bar-chart-line text-info fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Relatórios e gráficos</h5>
+                    <p class="text-muted mb-0">Visualize gastos por categoria, evolução do saldo e fluxo de caixa com gráficos interativos do Chart.js.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 p-4 border-0 shadow-sm">
+                    <div class="d-inline-flex bg-danger-subtle rounded-3 p-3 mb-3">
+                        <i class="bi bi-calendar2-check text-danger fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Contas a pagar</h5>
+                    <p class="text-muted mb-0">Nunca mais esqueça um vencimento. Gerencie contas fixas e variáveis e veja as que vencem em breve.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 p-4 border-0 shadow-sm">
+                    <div class="d-inline-flex bg-success-subtle rounded-3 p-3 mb-3">
+                        <i class="bi bi-people text-success fs-3"></i>
+                    </div>
+                    <h5 class="fw-bold">Gestão familiar</h5>
+                    <p class="text-muted mb-0">Convide a família, defina papéis (admin, membro, restrito) e controle quem vê ou edita cada informação.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── How it works ────────────────────────────────────────────────────────── #}
+<section class="py-5 bg-light">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold display-6">Comece em 3 passos</h2>
+            <p class="text-muted">Configure sua família financeira em minutos</p>
+        </div>
+        <div class="row g-5 text-center">
+            <div class="col-md-4">
+                <div class="step-circle text-white fw-bold fs-4 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow">
+                    1
+                </div>
+                <h5 class="fw-bold mt-2">Crie sua conta</h5>
+                <p class="text-muted">Cadastre-se com nome, e-mail e senha. Sua família financeira começa aqui, sem burocracia.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="step-circle text-white fw-bold fs-4 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow">
+                    2
+                </div>
+                <h5 class="fw-bold mt-2">Configure suas contas</h5>
+                <p class="text-muted">Adicione contas bancárias, dinheiro em espécie e cartões de crédito com saldo inicial.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="step-circle text-white fw-bold fs-4 rounded-circle d-inline-flex align-items-center justify-content-center mb-3 shadow">
+                    3
+                </div>
+                <h5 class="fw-bold mt-2">Lance e acompanhe</h5>
+                <p class="text-muted">Registre receitas e despesas diariamente e veja o dashboard atualizado em tempo real.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{# ── CTA ─────────────────────────────────────────────────────────────────── #}
+<section class="cta-section py-5 text-white">
+    <div class="container py-4 text-center">
+        <h2 class="fw-bold display-6 mb-3">Pronto para organizar as finanças?</h2>
+        <p class="lead mb-4 opacity-90">Comece hoje mesmo. É gratuito e fácil de usar.</p>
+        <a href="#" class="btn btn-warning btn-lg text-dark fw-bold px-5 shadow-lg">
+            <i class="bi bi-rocket-takeoff me-2"></i>Criar conta grátis
+        </a>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block footer %}
+<footer class="bg-dark text-muted py-4">
+    <div class="container text-center">
+        <div class="mb-2">
+            <i class="bi bi-coin text-warning me-1"></i>
+            <strong class="text-white">Zé Din Din</strong>
+        </div>
+        <small>
+            &copy; {{ now.year }} — Gestão financeira doméstica familiar.
+            Feito com <i class="bi bi-heart-fill text-danger"></i> no Brasil.
+        </small>
+    </div>
+</footer>
+{% endblock %}
