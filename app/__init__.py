@@ -13,12 +13,16 @@ def create_app(config_name: str = 'default') -> Flask:
     login_manager.init_app(app)
     csrf.init_app(app)
 
-    # Importa models para registrar no SQLAlchemy/Alembic e ativar user_loader
     from . import models  # noqa
 
     @app.context_processor
     def inject_globals():
-        return {'now': datetime.utcnow()}
+        from flask_login import current_user
+        current_family = None
+        if current_user.is_authenticated:
+            from .utils.families import get_current_family
+            current_family = get_current_family(current_user)
+        return {'now': datetime.utcnow(), 'current_family': current_family}
 
     from .main import main_bp
     app.register_blueprint(main_bp)
@@ -28,5 +32,8 @@ def create_app(config_name: str = 'default') -> Flask:
 
     from .dashboard import dashboard_bp
     app.register_blueprint(dashboard_bp)
+
+    from .families import families_bp
+    app.register_blueprint(families_bp)
 
     return app

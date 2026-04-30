@@ -20,10 +20,16 @@
         {# Brand #}
         <div class="px-3 py-4 border-bottom border-white border-opacity-10">
             <a href="{{ url_for('main.index') }}"
-               class="text-decoration-none text-white d-flex align-items-center gap-2">
+               class="text-decoration-none text-white d-flex align-items-center gap-2 mb-2">
                 <i class="bi bi-coin text-warning fs-5"></i>
                 <span class="fw-bold fs-6">Zé Din Din</span>
             </a>
+            {% if current_family %}
+            <div class="d-flex align-items-center gap-1" style="font-size:11px; color:rgba(255,255,255,.6);">
+                <i class="bi bi-house-fill" style="font-size:10px;"></i>
+                <span class="text-truncate">{{ current_family.name }}</span>
+            </div>
+            {% endif %}
         </div>
 
         {# Navigation #}
@@ -65,10 +71,10 @@
             </li>
 
             <li class="mb-1">
-                <span class="sidebar-link" style="opacity:.45; cursor:default;">
+                <a href="{{ url_for('families.members') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint in ('families.members', 'families.settings') else '' }}">
                     <i class="bi bi-people me-2"></i>Família
-                    <span class="badge bg-secondary ms-auto" style="font-size:10px;">Breve</span>
-                </span>
+                </a>
             </li>
 
             <li class="mb-1">
