@@ -141,6 +141,14 @@ body {
 
 /* ── Utilities ────────────────────────────────────────────── */
 
+/* ── Avatar ───────────────────────────────────────────────── */
+
+.avatar-sm {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+}
+
 .cursor-pointer { cursor: pointer; }
 
 .rounded-xl { border-radius: 14px !important; }

@@ -1,0 +1,126 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+    {# ── Cabeçalho ──────────────────────────────────────────────────────── #}
+    <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">
+                Olá, {{ current_user.name.split()[0] }}!
+            </h4>
+            <p class="text-muted mb-0 small">
+                Aqui está o resumo financeiro do mês de
+                <strong>{{ now.strftime('%B de %Y') }}</strong>.
+            </p>
+        </div>
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2">
+            <i class="bi bi-lightning-charge me-1"></i>Sprint 2 — Autenticação concluída
+        </span>
+    </div>
+
+    {# ── Cards de resumo ────────────────────────────────────────────────── #}
+    <div class="row g-3 mb-4">
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card income h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Receitas do mês</span>
+                    <div class="bg-success-subtle rounded-2 p-2">
+                        <i class="bi bi-arrow-down-circle text-success fs-5"></i>
+                    </div>
+                </div>
+                <div class="fs-4 fw-bold text-income">R$ 0,00</div>
+                <small class="text-muted">Nenhuma receita registrada</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card expense h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Despesas do mês</span>
+                    <div class="bg-danger-subtle rounded-2 p-2">
+                        <i class="bi bi-arrow-up-circle text-danger fs-5"></i>
+                    </div>
+                </div>
+                <div class="fs-4 fw-bold text-expense">R$ 0,00</div>
+                <small class="text-muted">Nenhuma despesa registrada</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card balance h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Saldo total</span>
+                    <div class="bg-primary-subtle rounded-2 p-2">
+                        <i class="bi bi-wallet2 text-primary fs-5"></i>
+                    </div>
+                </div>
+                <div class="fs-4 fw-bold">R$ 0,00</div>
+                <small class="text-muted">Sem contas cadastradas</small>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-xl-3">
+            <div class="card stat-card result h-100 p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Resultado do mês</span>
+                    <div class="bg-warning-subtle rounded-2 p-2">
+                        <i class="bi bi-graph-up text-warning fs-5"></i>
+                    </div>
+                </div>
+                <div class="fs-4 fw-bold">R$ 0,00</div>
+                <small class="text-muted">Receitas menos despesas</small>
+            </div>
+        </div>
+
+    </div>
+
+    {# ── Próximos passos ─────────────────────────────────────────────────── #}
+    <div class="row g-3">
+
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center justify-content-center"
+                     style="min-height: 260px;">
+                    <i class="bi bi-bar-chart-line text-muted mb-3" style="font-size: 3rem;"></i>
+                    <h6 class="fw-bold mb-2">Nenhuma transação ainda</h6>
+                    <p class="text-muted small mb-3" style="max-width: 320px;">
+                        Cadastre suas contas e comece a lançar receitas e despesas para ver os gráficos aqui.
+                    </p>
+                    <div class="d-flex gap-2 flex-wrap justify-content-center">
+                        <a href="#" class="btn btn-success btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i>Adicionar conta
+                        </a>
+                        <a href="#" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-left-right me-1"></i>Nova transação
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-calendar2-check text-danger me-2"></i>Contas a vencer
+                    </h6>
+                </div>
+                <div class="card-body p-4 text-center d-flex flex-column align-items-center justify-content-center">
+                    <i class="bi bi-calendar-x text-muted mb-2" style="font-size: 2rem;"></i>
+                    <p class="text-muted small mb-0">Nenhuma conta próxima do vencimento</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

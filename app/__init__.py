@@ -13,10 +13,8 @@ def create_app(config_name: str = 'default') -> Flask:
     login_manager.init_app(app)
     csrf.init_app(app)
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        # Substituído pelo loader real no Sprint 2 (model User)
-        return None
+    # Importa models para registrar no SQLAlchemy/Alembic e ativar user_loader
+    from . import models  # noqa
 
     @app.context_processor
     def inject_globals():
@@ -24,5 +22,11 @@ def create_app(config_name: str = 'default') -> Flask:
 
     from .main import main_bp
     app.register_blueprint(main_bp)
+
+    from .auth import auth_bp
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+
+    from .dashboard import dashboard_bp
+    app.register_blueprint(dashboard_bp)
 
     return app

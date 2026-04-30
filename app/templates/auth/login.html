@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Entrar{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center bg-light py-5">
+    <div class="w-100 px-3" style="max-width: 440px;">
+
+        {# Logo #}
+        <div class="text-center mb-4">
+            <a href="{{ url_for('main.index') }}" class="text-decoration-none">
+                <i class="bi bi-coin text-success" style="font-size: 2.5rem;"></i>
+                <div class="fw-bold fs-4 text-dark mt-1">Zé Din Din</div>
+            </a>
+            <p class="text-muted small mt-1 mb-0">Gestão financeira familiar</p>
+        </div>
+
+        {# Card #}
+        <div class="card border-0 shadow-sm rounded-xl p-4">
+            <h5 class="fw-bold mb-1">Bem-vindo de volta</h5>
+            <p class="text-muted small mb-4">Entre com seu e-mail e senha para continuar</p>
+
+            <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    {{ form.email.label(class='form-label fw-medium small') }}
+                    {{ form.email(
+                        class='form-control' + (' is-invalid' if form.email.errors else ''),
+                        placeholder='seu@email.com',
+                        autofocus=true
+                    ) }}
+                    {% for error in form.email.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.password.label(class='form-label fw-medium small') }}
+                    {{ form.password(
+                        class='form-control' + (' is-invalid' if form.password.errors else ''),
+                        placeholder='Sua senha'
+                    ) }}
+                    {% for error in form.password.errors %}
+                        <div class="invalid-feedback">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        {{ form.remember(class='form-check-input') }}
+                        {{ form.remember.label(class='form-check-label small text-muted') }}
+                    </div>
+                </div>
+
+                {{ form.submit(class='btn btn-success w-100 fw-semibold py-2') }}
+            </form>
+        </div>
+
+        <p class="text-center mt-3 mb-0 small text-muted">
+            Não tem conta?
+            <a href="{{ url_for('auth.register') }}" class="text-success fw-semibold text-decoration-none">
+                Criar conta grátis
+            </a>
+        </p>
+
+    </div>
+</div>
+{% endblock %}

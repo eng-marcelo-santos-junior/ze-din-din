@@ -26,7 +26,7 @@
                 <ul class="navbar-nav ms-auto align-items-center gap-1">
                     {% if current_user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="{{ url_for('dashboard.index') }}">
                                 <i class="bi bi-speedometer2 me-1"></i>Dashboard
                             </a>
                         </li>
@@ -35,15 +35,20 @@
                                 <i class="bi bi-person-circle me-1"></i>{{ current_user.name.split()[0] }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                        <i class="bi bi-box-arrow-right me-2"></i>Sair
+                                    </a>
+                                </li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Entrar</a>
+                            <a class="nav-link" href="{{ url_for('auth.login') }}">Entrar</a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-warning text-dark fw-semibold px-4 ms-2" href="#">
+                            <a class="btn btn-warning text-dark fw-semibold px-4 ms-2"
+                               href="{{ url_for('auth.register') }}">
                                 Criar conta
                             </a>
                         </li>
