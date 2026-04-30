@@ -1,0 +1,193 @@
+==================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 5
+Zé Din Din — Gestão Financeira Doméstica
+==================================================
+
+Data: 2026-04-30
+Sprint: 5 — Transações
+Status: Concluída
+
+==================================================
+1. RESUMO DO QUE FOI CRIADO
+==================================================
+
+Esta sprint implementou o coração financeiro da aplicação:
+lançamento de receitas, despesas, transferências e controle
+automático de saldo das contas.
+
+1.1 Model Transaction
+  - Campos: id, family_id, account_id, category_id, user_id,
+    type, description, amount_cents (signed), transaction_date,
+    competence_date, status, payment_method, notes,
+    transfer_group_id, installment_group_id, recurring_rule_id,
+    created_at, updated_at
+  - amount_cents SIGNED: positivo = crédito, negativo = débito
+  - Propriedades: display_amount_cents, is_transfer
+
+1.2 Enums
+  - TransactionType: INCOME, EXPENSE, TRANSFER, ADJUSTMENT, REFUND
+  - TransactionStatus: PENDING, PAID, RECEIVED, CANCELED
+
+1.3 Blueprint transactions (app/transactions/)
+  Rotas implementadas:
+  - GET       /transactions                    — listagem com filtros e paginação
+  - GET/POST  /transactions/new                — nova receita/despesa
+  - GET/POST  /transactions/<id>/edit          — edição
+  - POST      /transactions/<id>/delete        — exclusão com reversão de saldo
+  - POST      /transactions/<id>/duplicate     — duplicar para hoje
+  - POST      /transactions/<id>/mark-as-paid  — marcar como pago/recebido
+  - GET/POST  /transactions/transfer           — transferência entre contas
+
+1.4 Serviços financeiros (TransactionService)
+  - create_transaction   — cria e aplica ao saldo
+  - update_transaction   — reverte antigo, aplica novo
+  - delete_transaction   — reverte saldo e exclui
+  - duplicate_transaction — copia com status PENDING
+  - mark_as_paid         — PENDING → PAID ou RECEIVED
+  - create_transfer      — dois registros com transfer_group_id
+  - get_period_summary   — totais de receita/despesa/resultado
+  - TransactionFilters   — dataclass para filtros
+
+1.5 Lógica de saldo
+  - Regra única: account.balance += amount_cents
+  - INCOME/REFUND: amount_cents positivo (soma ao saldo)
+  - EXPENSE: amount_cents negativo (subtrai do saldo)
+  - TRANSFER OUT: negativo na conta origem
+  - TRANSFER IN:  positivo na conta destino
+  - CANCELED:     não afeta saldo (ignorado na aplicação/reversão)
+  - Editar: reverse do valor antigo + aplica novo
+  - Excluir: reverse antes de remover
+
+1.6 Filtros disponíveis na listagem
+  - start_date / end_date  — período
+  - type                   — tipo de transação
+  - account_id             — conta específica
+  - category_id            — categoria
+  - status                 — status do pagamento
+  - q                      — busca por texto na descrição
+
+1.7 Paginação
+  - 20 itens por página
+  - Parâmetro ?page=N preservando todos os filtros ativos
+  - Helper page_url(p) passado ao template para evitar
+    limitação de sintaxe do Jinja2 com dict comprehension
+
+1.8 Templates
+  - transactions/index.html  — listagem com cards de resumo,
+    filtros inline, tabela paginada, ações por linha
+  - transactions/form.html   — formulário único para INCOME/EXPENSE
+  - transactions/transfer.html — formulário de transferência
+
+1.9 Sidebar
+  - Link "Transações" ativo e funcional
+
+1.10 Testes (128 total, todos passando)
+  - test_transactions.py: 32 testes novos
+    - Receita aumenta saldo
+    - Despesa reduz saldo
+    - Cancelada não altera saldo
+    - Editar recalcula saldo (inclui mudança de tipo)
+    - Excluir reverte saldo
+    - Cancelada excluída não altera saldo
+    - Transferência movimenta duas contas
+    - transfer_group_id compartilhado
+    - is_transfer property
+    - Isolamento por family_id (get + listagem)
+    - Duplicar cria nova transação
+    - mark_as_paid EXPENSE → PAID
+    - mark_as_paid INCOME → RECEIVED
+    - Filtro por tipo, período, descrição, conta
+    - Rotas: login, 200, POST criação, 404 outra família,
+      página de transferência
+
+==================================================
+2. ESTRUTURA DE PASTAS RELEVANTE
+==================================================
+
+app/
+  transactions/
+    __init__.py
+    forms.py
+    routes.py
+    services.py
+  models/
+    transaction.py   ← novo
+    __init__.py      ← atualizado
+  templates/
+    transactions/
+      index.html
+      form.html
+      transfer.html
+  templates/
+    layout_private.html  ← Transações ativo na sidebar
+
+migrations/versions/
+  073ba1f6593f_adiciona_tabela_transactions.py  ← novo
+
+tests/
+  test_transactions.py  ← novo
+
+==================================================
+3. ROTAS COMPLETAS DO PROJETO ATÉ SPRINT 5
+==================================================
+
+Sprint 1: GET /
+Sprint 2: GET|POST /auth/login, /auth/register, GET /auth/logout
+Sprint 3: GET /dashboard
+          GET|POST /families/new, /families/settings
+          GET /families/members
+Sprint 4: GET /accounts, GET|POST /accounts/new
+          GET|POST /accounts/<id>/edit, POST /accounts/<id>/archive
+          GET /categories, GET|POST /categories/new
+          GET|POST /categories/<id>/edit, POST /categories/<id>/archive
+Sprint 5: GET /transactions
+          GET|POST /transactions/new
+          GET|POST /transactions/<id>/edit
+          POST /transactions/<id>/delete
+          POST /transactions/<id>/duplicate
+          POST /transactions/<id>/mark-as-paid
+          GET|POST /transactions/transfer
+
+Total de rotas: 28
+
+==================================================
+4. COMO EXECUTAR MIGRATIONS
+==================================================
+
+  flask db upgrade
+  # ou
+  docker compose exec web flask db upgrade
+
+==================================================
+5. COMO RODAR OS TESTES
+==================================================
+
+  # Todos os testes
+  docker compose exec web pytest tests/ -v
+
+  # Apenas Sprint 5
+  docker compose exec web pytest tests/test_transactions.py -v
+
+==================================================
+6. PRÓXIMOS PASSOS RECOMENDADOS (SPRINT 6)
+==================================================
+
+Sprint 6 — Dashboard com dados reais:
+
+1. Atualizar dashboard com dados reais de transações
+2. Saldo total de todas as contas
+3. Receitas e despesas do mês atual
+4. Resultado do mês (receitas - despesas)
+5. Gráfico de gastos por categoria (Chart.js)
+6. Gráfico receita x despesa por mês (últimos 6 meses)
+7. Contas próximas do vencimento (Sprint 7 — bills)
+8. Orçamento usado (Sprint 7 — budgets)
+9. Últimas transações no dashboard
+
+Sprint 7 — Orçamentos e Contas a Pagar:
+
+1. Model Budget (orçamento por categoria/mês)
+2. Model Bill (conta a pagar/receber)
+3. Blueprint budgets e bills
+4. Comparação planejado x realizado
+5. Vencimentos e alertas
