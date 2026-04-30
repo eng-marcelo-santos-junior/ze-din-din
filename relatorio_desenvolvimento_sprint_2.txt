@@ -1,0 +1,244 @@
+================================================================================
+ZÉ DIN DIN — RELATÓRIO DE DESENVOLVIMENTO
+Sprint 2: Autenticação
+Data: 2026-04-30
+================================================================================
+
+
+1. RESUMO DO QUE FOI FEITO
+================================================================================
+
+Implementada a camada completa de autenticação da aplicação. O usuário agora
+consegue se cadastrar, fazer login, acessar o dashboard privado e fazer logout.
+Rotas privadas estão protegidas com login_required. Senhas são armazenadas com
+hash seguro. 17 testes automatizados cobrem os fluxos críticos de autenticação.
+
+
+2. ARQUIVOS CRIADOS OU ALTERADOS
+================================================================================
+
+Arquivo                                  Status      Descrição
+----------------------------------------------------------------------
+app/__init__.py                          Alterado    Registra blueprints auth e dashboard;
+                                                     importa models para ativar user_loader;
+                                                     remove placeholder load_user do Sprint 1
+
+app/models/__init__.py                   Criado      Pacote de models; exporta User
+
+app/models/user.py                       Criado      Model User: id, name, email,
+                                                     password_hash, is_active, created_at,
+                                                     updated_at; set_password, check_password;
+                                                     user_loader do Flask-Login
+
+app/auth/__init__.py                     Criado      Blueprint auth
+
+app/auth/forms.py                        Criado      RegisterForm (name, email, password,
+                                                     confirm_password) e LoginForm (email,
+                                                     password, remember); validação de e-mail
+                                                     duplicado
+
+app/auth/services.py                     Criado      register_user, get_user_by_email,
+                                                     authenticate — regras de negócio
+                                                     separadas das rotas
+
+app/auth/routes.py                       Criado      GET/POST /auth/register,
+                                                     GET/POST /auth/login,
+                                                     GET /auth/logout
+
+app/dashboard/__init__.py                Criado      Blueprint dashboard
+
+app/dashboard/routes.py                  Criado      GET /dashboard com @login_required
+
+app/templates/layout_private.html       Criado      Layout da área autenticada: sidebar com
+                                                     navegação, topbar com breadcrumb e
+                                                     dropdown do usuário, flash messages
+
+app/templates/auth/login.html           Criado      Formulário de login centralizado com
+                                                     Bootstrap 5; link para cadastro
+
+app/templates/auth/register.html        Criado      Formulário de cadastro com 4 campos;
+                                                     validação inline; link para login
+
+app/templates/dashboard/index.html      Criado      Dashboard com 4 cards de resumo
+                                                     (Receitas, Despesas, Saldo, Resultado)
+                                                     e empty states
+
+app/templates/base.html                 Alterado    Links da navbar atualizados para rotas
+                                                     reais (auth.login, auth.register,
+                                                     auth.logout, dashboard.index)
+
+app/static/css/main.css                 Alterado    Adicionado estilo .avatar-sm para
+                                                     avatar circular de iniciais do usuário
+
+Dockerfile                              Alterado    Instala requirements-dev.txt para
+                                                     disponibilizar pytest no container
+
+migrations/                             Criado      Flask-Migrate inicializado; migration
+                                                     cd7926035aab cria tabela users com
+                                                     índice em email
+
+tests/conftest.py                       Criado      Fixtures de teste: app (session-scope),
+                                                     clean_tables (autouse), client, app_ctx;
+                                                     corrige isolamento limpando g._login_user
+
+tests/test_auth.py                      Criado      17 testes cobrindo: criação de usuário,
+                                                     hash de senha, autenticação, rotas HTTP,
+                                                     proteção de rotas privadas
+
+
+3. COMO TESTAR MANUALMENTE
+================================================================================
+
+1. Acessar a landing page e clicar em "Criar conta" ou "Entrar":
+
+   http://localhost:5000
+
+2. Cadastrar um novo usuário:
+
+   http://localhost:5000/auth/register
+
+   - Preencher nome, e-mail e senha (mínimo 8 caracteres)
+   - Confirmar senha
+   - Clicar em "Criar conta"
+   - Esperado: redirecionamento para o dashboard com mensagem de boas-vindas
+
+3. Verificar o dashboard:
+
+   http://localhost:5000/dashboard
+
+   - Deve exibir sidebar com navegação
+   - Deve exibir nome do usuário logado
+   - Deve exibir 4 cards de resumo com R$ 0,00
+   - Deve exibir empty state para transações e contas a vencer
+
+4. Testar logout:
+
+   - Clicar em "Sair" na sidebar ou no dropdown do topbar
+   - Esperado: redirecionamento para /auth/login com mensagem de confirmação
+
+5. Testar proteção de rota:
+
+   - Fazer logout
+   - Acessar http://localhost:5000/dashboard diretamente
+   - Esperado: redirecionamento para /auth/login?next=%2Fdashboard
+
+6. Testar login:
+
+   http://localhost:5000/auth/login
+
+   - Inserir e-mail e senha cadastrados
+   - Clicar em "Entrar"
+   - Esperado: redirecionamento para o dashboard com mensagem de boas-vindas
+
+7. Testar login com credenciais inválidas:
+
+   - Inserir e-mail ou senha errados
+   - Esperado: mensagem "E-mail ou senha incorretos." em vermelho
+   - Esperado: permanece na página de login
+
+8. Testar e-mail duplicado no cadastro:
+
+   - Tentar cadastrar com o mesmo e-mail já registrado
+   - Esperado: mensagem de erro inline no campo de e-mail
+
+
+4. COMANDOS NECESSÁRIOS
+================================================================================
+
+# Subir containers (se não estiverem rodando)
+make up
+
+# Aplicar migrations (tabela users)
+make migrate
+
+# Rodar testes
+make test
+
+# Ver resultado com cobertura
+make test-cov
+
+# Acessar psql para inspecionar dados
+make psql
+
+# Dentro do psql:
+#   SELECT * FROM users;
+#   SELECT * FROM alembic_version;
+#   \q
+
+
+5. DECISÕES TÉCNICAS
+================================================================================
+
+Hash de senha: pbkdf2:sha256
+  Werkzeug 3.x usa scrypt por padrão, que é muito lento em ambiente Docker
+  sem aceleração de hardware. Foi escolhido pbkdf2:sha256, que é seguro para
+  o MVP e oferece performance adequada.
+
+Isolamento de testes:
+  O contexto da aplicação (app context) é mantido aberto durante toda a sessão
+  de testes para performance. Flask-Login cacheia o usuário autenticado em
+  g._login_user, que persiste no contexto. O fixture clean_tables limpa
+  explicitamente g._login_user após cada teste para evitar ObjectDeletedError
+  causado por usuários deletados entre testes.
+
+Queries SQLAlchemy:
+  Uso de db.session.scalar(db.select(Model).where(...)) em vez de
+  Model.query.filter_by(...) seguindo o estilo moderno do SQLAlchemy 2.x.
+
+layout_private.html:
+  Template independente (não herda de base.html) por ter estrutura visual
+  completamente diferente: sidebar fixa + topbar, sem navbar pública nem
+  footer. Simplifica a manutenção e evita complexidade de herança.
+
+
+6. POSSÍVEIS LIMITAÇÕES
+================================================================================
+
+Limitação                        Detalhe
+----------------------------------------------------------------------
+Sem recuperação de senha         A rota /auth/forgot-password não foi
+                                 implementada neste sprint. Requer
+                                 configuração de servidor de e-mail.
+
+Sem família/grupo                Usuários são criados sem vínculo familiar.
+                                 O modelo Family e FamilyMember serão
+                                 implementados em sprint futuro.
+
+Dashboard com dados zerados      Os 4 cards exibem R$ 0,00. Os valores reais
+                                 dependem dos módulos de contas e transações.
+
+Sidebar com itens desabilitados  Transações, Contas, Categorias, etc. mostram
+                                 badge "Breve" pois ainda não foram
+                                 implementados.
+
+Sem paginação                    Não necessário neste sprint (sem listagens).
+
+Warnings de utcnow()             Python 3.12 depreca datetime.utcnow(). Será
+                                 migrado para datetime.now(UTC) em sprint
+                                 de refatoração.
+
+
+7. PRÓXIMOS PASSOS — SPRINT 3
+================================================================================
+
+Objetivo: Família + Contas Financeiras + Categorias
+
+Tarefas previstas:
+
+  - Models Family, FamilyMember em app/models/
+  - Roles: OWNER, ADMIN, MEMBER, RESTRICTED
+  - Blueprint families: criar família no primeiro acesso, convidar membros
+  - Model Account: conta corrente, poupança, carteira, dinheiro físico
+  - Blueprint accounts: CRUD de contas financeiras com saldo em centavos
+  - Model Category: categorias de receita e despesa com ícone e cor
+  - Blueprint categories: CRUD com categorias padrão pré-cadastradas
+  - Utils money.py: format_brl(), cents_to_brl(), brl_to_cents()
+  - Utils decorators.py: @family_required, @role_required
+  - Validação de family_id em todos os acessos financeiros
+  - Testes: test_accounts.py, test_categories.py, test_family.py
+  - Migration: tables families, family_members, accounts, categories
+
+
+================================================================================
+Fim do relatório — Sprint 2
+================================================================================
