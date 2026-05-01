@@ -48,4 +48,13 @@ def create_app(config_name: str = 'default') -> Flask:
     from .transactions import transactions_bp
     app.register_blueprint(transactions_bp)
 
+    from .budgets import budgets_bp
+    app.register_blueprint(budgets_bp)
+
+    from .bills import bills_bp
+    app.register_blueprint(bills_bp)
+
+    from .goals import goals_bp
+    app.register_blueprint(goals_bp)
+
     return app

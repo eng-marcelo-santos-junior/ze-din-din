@@ -1,0 +1,86 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}{{ 'Editar meta' if goal else 'Nova meta' }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{{ url_for('goals.index') }}" class="text-decoration-none">Metas</a>
+</li>
+<li class="breadcrumb-item active">{{ 'Editar' if goal else 'Nova' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">{{ 'Editar meta' if goal else 'Nova meta' }}</h4>
+    <p class="text-muted mb-0 small">
+      {% if goal %}Edite os dados da meta <strong>{{ goal.name }}</strong>.
+      {% else %}Defina uma nova meta financeira para a família.{% endif %}
+    </p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+              {{ form.name.label(class='form-label fw-semibold') }}
+              {{ form.name(class='form-control' + (' is-invalid' if form.name.errors else '')) }}
+              {% for e in form.name.errors %}
+              <div class="invalid-feedback">{{ e }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                {{ form.target_amount.label(class='form-label fw-semibold') }}
+                <div class="input-group">
+                  <span class="input-group-text text-muted small">R$</span>
+                  {{ form.target_amount(class='form-control' + (' is-invalid' if form.target_amount.errors else '')) }}
+                </div>
+                {% for e in form.target_amount.errors %}
+                <div class="text-danger small mt-1">{{ e }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-sm-6">
+                {{ form.target_date.label(class='form-label fw-semibold') }}
+                {{ form.target_date(class='form-control') }}
+                <small class="text-muted">Opcional</small>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              {{ form.account_id.label(class='form-label fw-semibold') }}
+              {{ form.account_id(class='form-select') }}
+              <small class="text-muted">Opcional — para referência</small>
+            </div>
+
+            <div class="d-flex gap-2">
+              {{ form.submit(class='btn btn-success') }}
+              <a href="{{ url_for('goals.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5 mt-3 mt-lg-0">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-info-circle text-primary me-2"></i>Dica</h6>
+        </div>
+        <div class="card-body p-4 small text-muted">
+          <p><strong>Exemplos de metas:</strong> reserva de emergência, viagem, carro, reforma, quitação de dívida.</p>
+          <p><strong>Data alvo:</strong> informe a data em que pretende atingir a meta para calcular o aporte mensal sugerido.</p>
+          <p class="mb-0"><strong>Conta vinculada:</strong> serve apenas como referência visual — o saldo da conta não é alterado automaticamente pelos aportes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

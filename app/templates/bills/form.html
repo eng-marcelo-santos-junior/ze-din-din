@@ -1,0 +1,99 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}{{ 'Editar conta' if bill else 'Nova conta' }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{{ url_for('bills.index') }}" class="text-decoration-none">Contas</a>
+</li>
+<li class="breadcrumb-item active">{{ 'Editar' if bill else 'Nova' }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">{{ 'Editar conta' if bill else 'Nova conta' }}</h4>
+    <p class="text-muted mb-0 small">
+      {% if bill %}Edite os dados da conta <strong>{{ bill.description }}</strong>.
+      {% else %}Adicione uma nova conta a pagar ou a receber.{% endif %}
+    </p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-8">
+                {{ form.description.label(class='form-label fw-semibold') }}
+                {{ form.description(class='form-control' + (' is-invalid' if form.description.errors else '')) }}
+                {% for e in form.description.errors %}
+                <div class="invalid-feedback">{{ e }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-sm-4">
+                {{ form.type.label(class='form-label fw-semibold') }}
+                {{ form.type(class='form-select') }}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                {{ form.amount.label(class='form-label fw-semibold') }}
+                <div class="input-group">
+                  <span class="input-group-text text-muted small">R$</span>
+                  {{ form.amount(class='form-control' + (' is-invalid' if form.amount.errors else '')) }}
+                </div>
+                {% for e in form.amount.errors %}
+                <div class="text-danger small mt-1">{{ e }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-sm-6">
+                {{ form.due_date.label(class='form-label fw-semibold') }}
+                {{ form.due_date(class='form-control' + (' is-invalid' if form.due_date.errors else '')) }}
+                {% for e in form.due_date.errors %}
+                <div class="invalid-feedback">{{ e }}</div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+              <div class="col-sm-6">
+                {{ form.category_id.label(class='form-label fw-semibold') }}
+                {{ form.category_id(class='form-select') }}
+              </div>
+              <div class="col-sm-6">
+                {{ form.account_id.label(class='form-label fw-semibold') }}
+                {{ form.account_id(class='form-select') }}
+              </div>
+            </div>
+
+            <div class="d-flex gap-2">
+              {{ form.submit(class='btn btn-success') }}
+              <a href="{{ url_for('bills.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5 mt-3 mt-lg-0">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-info-circle text-primary me-2"></i>Dica</h6>
+        </div>
+        <div class="card-body p-4 small text-muted">
+          <p><strong>A Pagar:</strong> contas que você deve pagar (aluguel, fatura, etc.).</p>
+          <p><strong>A Receber:</strong> valores que você tem a receber (salário, reembolso, etc.).</p>
+          <p class="mb-0"><strong>Ao marcar como pago/recebido,</strong> uma transação é criada automaticamente na conta selecionada.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,250 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Contas a Pagar / Receber{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Contas a Pagar / Receber</li>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+
+  {# ── Cabeçalho ────────────────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <i class="bi bi-calendar2-check text-danger me-2"></i>Contas a Pagar / Receber
+      </h4>
+      <p class="text-muted mb-0 small">Gerencie seus compromissos financeiros.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('bills.new', type='PAYABLE') }}" class="btn btn-danger btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>A pagar
+      </a>
+      <a href="{{ url_for('bills.new', type='RECEIVABLE') }}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>A receber
+      </a>
+    </div>
+  </div>
+
+  {# ── Tabs ─────────────────────────────────────────────────────────────────── #}
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a class="nav-link {{ 'active' if tab == 'pending' }}"
+         href="{{ url_for('bills.index', tab='pending') }}">
+        Pendentes
+        {% if pending %}
+        <span class="badge bg-danger ms-1">{{ pending | length }}</span>
+        {% endif %}
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {{ 'active' if tab == 'history' }}"
+         href="{{ url_for('bills.index', tab='history') }}">
+        Histórico
+      </a>
+    </li>
+  </ul>
+
+  {# ── Pendentes ────────────────────────────────────────────────────────────── #}
+  {% if tab == 'pending' %}
+  {% if pending %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-4">Descrição</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Vencimento</th>
+              <th>Categoria</th>
+              <th class="text-center">Status</th>
+              <th style="width:130px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bill in pending %}
+            {% set overdue = bill.is_overdue %}
+            {% set soon = not overdue and bill.days_until_due <= 7 %}
+            <tr class="{{ 'table-danger' if overdue else 'table-warning' if soon else '' }}">
+              <td class="px-4 fw-medium">{{ bill.description }}</td>
+              <td>
+                {% if bill.type == 'PAYABLE' %}
+                <span class="badge bg-danger-subtle text-danger-emphasis">A Pagar</span>
+                {% else %}
+                <span class="badge bg-success-subtle text-success-emphasis">A Receber</span>
+                {% endif %}
+              </td>
+              <td class="fw-semibold">R$ {{ bill.amount_cents | money }}</td>
+              <td class="{{ 'text-danger fw-semibold' if overdue else '' }}">
+                {{ bill.due_date.strftime('%d/%m/%Y') }}
+                {% if overdue %}
+                <small class="d-block text-danger" style="font-size:11px;">
+                  Vencida há {{ bill.days_until_due * -1 }} dia(s)
+                </small>
+                {% elif soon %}
+                <small class="d-block text-warning-emphasis" style="font-size:11px;">
+                  Vence em {{ bill.days_until_due }} dia(s)
+                </small>
+                {% endif %}
+              </td>
+              <td class="text-muted small">{{ bill.category.name if bill.category else '—' }}</td>
+              <td class="text-center">
+                {% if overdue %}
+                <span class="badge bg-danger" style="font-size:11px;">Vencida</span>
+                {% else %}
+                <span class="badge bg-warning text-dark" style="font-size:11px;">Pendente</span>
+                {% endif %}
+              </td>
+              <td class="pe-3">
+                <div class="d-flex gap-1 justify-content-end">
+                  <button type="button"
+                          class="btn btn-sm btn-success py-0 px-2"
+                          data-bs-toggle="modal"
+                          data-bs-target="#payModal"
+                          data-bill-id="{{ bill.id }}"
+                          data-bill-desc="{{ bill.description }}"
+                          data-bill-amount="R$ {{ bill.amount_cents | money }}"
+                          data-account-id="{{ bill.account_id or '' }}"
+                          title="{{ 'Pagar' if bill.type == 'PAYABLE' else 'Receber' }}">
+                    <i class="bi bi-check-circle" style="font-size:12px;"></i>
+                  </button>
+                  <a href="{{ url_for('bills.edit', bill_id=bill.id) }}"
+                     class="btn btn-sm btn-outline-secondary py-0 px-2" title="Editar">
+                    <i class="bi bi-pencil" style="font-size:12px;"></i>
+                  </a>
+                  <form method="POST" action="{{ url_for('bills.cancel', bill_id=bill.id) }}"
+                        onsubmit="return confirm('Cancelar esta conta?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Cancelar">
+                      <i class="bi bi-x-circle" style="font-size:12px;"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+      <i class="bi bi-check2-all text-success mb-2" style="font-size:3rem;"></i>
+      <p class="text-muted mb-0">Nenhuma conta pendente. Tudo em dia!</p>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
+  {# ── Histórico ────────────────────────────────────────────────────────────── #}
+  {% if tab == 'history' %}
+  {% set STATUS_MAP = {'PAID': ('success', 'Pago'), 'RECEIVED': ('success', 'Recebido'), 'CANCELED': ('secondary', 'Cancelado')} %}
+  {% if history %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-4">Descrição</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Vencimento</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for bill in history %}
+            {% set s = STATUS_MAP.get(bill.status, ('secondary', bill.status)) %}
+            <tr class="text-muted">
+              <td class="px-4">{{ bill.description }}</td>
+              <td>
+                {% if bill.type == 'PAYABLE' %}
+                <span class="badge bg-danger-subtle text-danger-emphasis">A Pagar</span>
+                {% else %}
+                <span class="badge bg-success-subtle text-success-emphasis">A Receber</span>
+                {% endif %}
+              </td>
+              <td>R$ {{ bill.amount_cents | money }}</td>
+              <td>{{ bill.due_date.strftime('%d/%m/%Y') }}</td>
+              <td class="text-center">
+                <span class="badge bg-{{ s[0] }}-subtle text-{{ s[0] }}-emphasis" style="font-size:11px;">
+                  {{ s[1] }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body text-center py-5 text-muted">
+      <i class="bi bi-clock-history mb-2" style="font-size:2.5rem;"></i>
+      <p class="mb-0">Nenhum histórico ainda.</p>
+    </div>
+  </div>
+  {% endif %}
+  {% endif %}
+
+</div>
+
+{# ── Modal: Pagar / Receber ───────────────────────────────────────────────── #}
+<div class="modal fade" id="payModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-check-circle-fill text-success me-2"></i>Confirmar pagamento
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="payBillForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+          <p class="text-muted mb-3">
+            Conta: <strong id="payBillDesc"></strong>
+            (<span id="payBillAmount"></span>)
+          </p>
+          <div class="mb-3">
+            {{ pay_form.account_id.label(class='form-label fw-semibold') }}
+            {{ pay_form.account_id(class='form-select') }}
+          </div>
+          <div class="mb-3">
+            {{ pay_form.paid_date.label(class='form-label fw-semibold') }}
+            {{ pay_form.paid_date(class='form-control') }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">
+            <i class="bi bi-check-circle me-1"></i>Confirmar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('payModal').addEventListener('show.bs.modal', function (e) {
+  const btn = e.relatedTarget;
+  document.getElementById('payBillForm').action = '/bills/' + btn.dataset.billId + '/pay';
+  document.getElementById('payBillDesc').textContent = btn.dataset.billDesc;
+  document.getElementById('payBillAmount').textContent = btn.dataset.billAmount;
+  const sel = document.getElementById('{{ pay_form.account_id.id }}');
+  if (btn.dataset.accountId && sel) {
+    sel.value = btn.dataset.accountId;
+  }
+});
+</script>
+{% endblock %}

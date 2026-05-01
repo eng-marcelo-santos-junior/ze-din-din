@@ -1,0 +1,105 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}{{ 'Editar orçamento' if budget else 'Novo orçamento' }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item">
+  <a href="{{ url_for('budgets.index') }}" class="text-decoration-none">Orçamentos</a>
+</li>
+<li class="breadcrumb-item active">{{ 'Editar' if budget else 'Novo' }}</li>
+{% endblock %}
+
+{% block content %}
+{% set PT_MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] %}
+<div class="pt-4">
+
+  <div class="mb-4">
+    <h4 class="fw-bold mb-1">{{ 'Editar orçamento' if budget else 'Novo orçamento' }}</h4>
+    <p class="text-muted mb-0 small">
+      {% if budget %}
+        Atualize o valor planejado para
+        <strong>{{ budget.category.name if budget.category else '—' }}</strong>
+        em {{ PT_MONTHS[budget.month - 1] }}/{{ budget.year }}.
+      {% else %}
+        Defina o valor planejado para uma categoria de despesa.
+      {% endif %}
+    </p>
+  </div>
+
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            {% if not budget %}
+            <div class="mb-3">
+              {{ form.category_id.label(class='form-label fw-semibold') }}
+              {{ form.category_id(class='form-select' + (' is-invalid' if form.category_id.errors else '')) }}
+              {% for e in form.category_id.errors %}
+              <div class="invalid-feedback">{{ e }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                {{ form.month.label(class='form-label fw-semibold') }}
+                {{ form.month(class='form-select' + (' is-invalid' if form.month.errors else '')) }}
+              </div>
+              <div class="col-sm-6">
+                {{ form.year.label(class='form-label fw-semibold') }}
+                {{ form.year(class='form-control' + (' is-invalid' if form.year.errors else ''),
+                             placeholder='Ex: 2026') }}
+              </div>
+            </div>
+            {% else %}
+            <div class="mb-3 p-3 bg-light rounded-2">
+              <div class="text-muted small">Categoria</div>
+              <div class="fw-semibold">{{ budget.category.name if budget.category else '—' }}</div>
+            </div>
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6 p-3 bg-light rounded-2 ms-2">
+                <div class="text-muted small">Período</div>
+                <div class="fw-semibold">{{ PT_MONTHS[budget.month - 1] }}/{{ budget.year }}</div>
+              </div>
+            </div>
+            {% endif %}
+
+            <div class="mb-4">
+              {{ form.planned_amount.label(class='form-label fw-semibold') }}
+              <div class="input-group">
+                <span class="input-group-text text-muted small">R$</span>
+                {{ form.planned_amount(class='form-control' + (' is-invalid' if form.planned_amount.errors else '')) }}
+              </div>
+              {% for e in form.planned_amount.errors %}
+              <div class="text-danger small mt-1">{{ e }}</div>
+              {% endfor %}
+            </div>
+
+            <div class="d-flex gap-2">
+              {{ form.submit(class='btn btn-success') }}
+              <a href="{{ url_for('budgets.index') }}" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-5 mt-3 mt-lg-0">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0"><i class="bi bi-info-circle text-primary me-2"></i>Dica</h6>
+        </div>
+        <div class="card-body p-4 small text-muted">
+          <p><strong>Valor planejado:</strong> quanto você pretende gastar nesta categoria no mês selecionado.</p>
+          <p><strong>Alertas:</strong> o orçamento fica amarelo ao atingir 80% e vermelho ao ser excedido.</p>
+          <p class="mb-0"><strong>Copiar mês anterior:</strong> na listagem, use o botão para copiar todos os orçamentos do mês anterior de uma só vez.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

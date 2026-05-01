@@ -64,10 +64,24 @@
             </li>
 
             <li class="mb-1">
-                <span class="sidebar-link" style="opacity:.45; cursor:default;">
+                <a href="{{ url_for('budgets.index') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('budgets.') else '' }}">
+                    <i class="bi bi-bullseye me-2"></i>Orçamentos
+                </a>
+            </li>
+
+            <li class="mb-1">
+                <a href="{{ url_for('bills.index') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('bills.') else '' }}">
                     <i class="bi bi-calendar2-check me-2"></i>Contas a pagar
-                    <span class="badge bg-secondary ms-auto" style="font-size:10px;">Breve</span>
-                </span>
+                </a>
+            </li>
+
+            <li class="mb-1">
+                <a href="{{ url_for('goals.index') }}"
+                   class="sidebar-link {{ 'active' if request.endpoint and request.endpoint.startswith('goals.') else '' }}">
+                    <i class="bi bi-trophy me-2"></i>Metas
+                </a>
             </li>
 
             <li class="mb-1">
