@@ -1,0 +1,195 @@
+==================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 6
+Dashboard Financeiro
+==================================================
+
+DATA: 2026-05-01
+STATUS: Concluído
+TESTES: 163/163 passando
+
+==================================================
+1. RESUMO DO QUE FOI CRIADO
+==================================================
+
+O Sprint 6 implementou o dashboard financeiro completo do Zé Din Din.
+O módulo já existia parcialmente (blueprint + services.py), portanto
+o trabalho focou em:
+
+  - Conectar a rota à camada de serviços (routes.py reescrito)
+  - Criar o template completo com UI funcional (index.html reescrito)
+  - Criar 35 testes automatizados cobrindo todos os critérios do sprint
+
+ARQUIVOS ALTERADOS / CRIADOS:
+
+  app/dashboard/routes.py          — rota atualizada com todos os dados
+  app/templates/dashboard/index.html — template completo do dashboard
+  tests/test_dashboard.py          — 35 testes novos
+
+==================================================
+2. FUNCIONALIDADES IMPLEMENTADAS
+==================================================
+
+2.1 Filtros
+-----------
+  - Seletor de mês (PT-BR) e ano
+  - Filtro opcional por conta bancária
+  - Botão "Limpar" aparece quando filtro não é o mês atual
+  - Todos os cálculos respeitam os filtros de período e conta
+
+2.2 Cards de Resumo (6 cards)
+------------------------------
+  - Saldo Total  — soma de todas as contas ativas (verde/vermelho)
+  - Receitas do Mês — entradas no período filtrado
+  - Despesas do Mês — saídas no período filtrado
+  - Resultado do Mês — receitas - despesas (positivo/negativo com cor)
+  - Quantidade de Transações — count de tx não canceladas no período
+  - Maior Categoria de Despesa — nome + valor + % do total de despesas
+
+2.3 Alertas Dinâmicos (4 tipos)
+---------------------------------
+  - Nenhuma conta cadastrada → link para criar conta
+  - Nenhuma transação no período → link para adicionar transação
+  - Resultado do mês negativo → valor do déficit destacado
+  - Categoria com > 50% das despesas → nome e percentual exibidos
+
+2.4 Gráficos Chart.js
+----------------------
+  - Doughnut: Despesas por Categoria
+      - Legenda customizada com cores e valores em reais
+      - Estado vazio quando não há despesas no período
+  - Bar: Receitas vs. Despesas — Últimos 6 Meses
+      - Série verde (receitas) e vermelha (despesas)
+      - Eixo Y formatado em BRL
+      - Tooltips com formatação pt-BR
+
+2.5 Tabela de Últimas Transações
+----------------------------------
+  - 10 transações mais recentes (ordenadas por data e created_at)
+  - Colunas: Data, Descrição, Categoria (badge colorido), Conta,
+             Valor (+verde/-vermelho), Status (badge)
+  - Ícone para identificar transferências
+  - Estado vazio com link para adicionar transação
+
+==================================================
+3. ESTRUTURA DE PASTAS RELEVANTE
+==================================================
+
+ze-din-din/
+├── app/
+│   ├── dashboard/
+│   │   ├── __init__.py          (dashboard_bp)
+│   │   ├── routes.py            ← ATUALIZADO
+│   │   └── services.py          (DashboardFilters + 9 funções)
+│   └── templates/
+│       └── dashboard/
+│           └── index.html       ← REESCRITO (cards + gráficos + tabela)
+└── tests/
+    └── test_dashboard.py        ← CRIADO (35 testes)
+
+==================================================
+4. SERVIÇOS DISPONÍVEIS (app/dashboard/services.py)
+==================================================
+
+DashboardFilters(month, year, account_id)
+get_total_balance(family_id)
+get_month_income(family_id, filters)
+get_month_expenses(family_id, filters)
+get_month_result(family_id, filters)
+get_month_transaction_count(family_id, filters)
+get_expenses_by_category(family_id, filters) → list[dict]
+get_income_vs_expense_by_month(family_id, num_months=6) → list[dict]
+get_recent_transactions(family_id, limit=10)
+get_top_expense_category(family_id, filters) → dict | None
+get_upcoming_bills_placeholder() → []
+
+==================================================
+5. PRINCIPAIS COMANDOS PARA RODAR
+==================================================
+
+# Com Docker:
+docker compose up -d
+docker compose exec web flask db upgrade
+# Acesse: http://localhost:5000
+
+# Sem Docker (venv local):
+.venv\Scripts\activate     # Windows
+flask run
+
+==================================================
+6. COMO EXECUTAR MIGRATIONS
+==================================================
+
+docker compose exec web flask db migrate -m "descricao"
+docker compose exec web flask db upgrade
+
+# Localmente:
+flask db migrate -m "descricao"
+flask db upgrade
+
+==================================================
+7. COMO RODAR OS TESTES
+==================================================
+
+# Todos os testes:
+.venv\Scripts\python.exe -m pytest -v
+
+# Apenas o dashboard:
+.venv\Scripts\python.exe -m pytest tests/test_dashboard.py -v
+
+# Com Docker:
+docker compose exec web pytest -v
+
+Resultado atual: 163 passed (35 novos no Sprint 6)
+
+==================================================
+8. CRITÉRIOS DE ACEITE — STATUS
+==================================================
+
+[✅] Dashboard exibe cards principais (6 cards com dados reais)
+[✅] Dashboard exibe gráficos (doughnut + bar com Chart.js)
+[✅] Dashboard respeita filtros (mês, ano, conta)
+[✅] Dashboard mostra últimas transações (tabela com 10 itens)
+[✅] Cálculos corretos (serviços testados exaustivamente)
+[✅] Testes passam (35 novos + 163 total)
+
+Testes cobrem:
+  - Saldo total (4 cenários)
+  - Receitas do mês (5 cenários)
+  - Despesas do mês (4 cenários)
+  - Resultado do mês (3 cenários)
+  - Transações canceladas ignoradas (4 cenários)
+  - Isolamento por família (5 cenários)
+  - Despesas por categoria e top categoria (3 cenários)
+  - Últimas transações (3 cenários)
+  - Rotas HTTP (4 cenários)
+
+==================================================
+9. PRÓXIMOS PASSOS RECOMENDADOS — SPRINT 7
+==================================================
+
+Sprint 7 — Orçamentos, Contas a Pagar e Metas:
+
+  1. Módulo de Orçamentos (app/budgets/)
+     - Criar orçamento mensal por categoria
+     - Comparar planejado vs. realizado
+     - Alertar orçamento excedido
+     - Copiar orçamento do mês anterior
+
+  2. Módulo de Contas a Pagar/Receber (app/bills/)
+     - PAYABLE e RECEIVABLE
+     - Status: PENDING → PAID/RECEIVED/OVERDUE/CANCELED
+     - Gerar transação ao pagar
+     - Listar vencidas e próximas do vencimento
+     - Integrar alertas no dashboard (substituir placeholder)
+
+  3. Módulo de Metas (app/goals/)
+     - Criar e editar metas com valor alvo e prazo
+     - Atualizar progresso (% concluído)
+     - Estimar aporte mensal necessário
+
+  4. Atualizar dashboard para exibir:
+     - Contas próximas do vencimento (substituir placeholder atual)
+     - Progresso das metas
+     - Alerta de orçamentos excedidos
+
+==================================================

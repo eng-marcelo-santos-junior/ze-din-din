@@ -145,7 +145,12 @@ ze-din-din/
 | Sprint | Escopo | Status |
 |--------|--------|--------|
 | 1 | Setup inicial, Docker, estrutura base | ✅ Concluído |
-| 2 | Autenticação, família, dashboard | 🔜 |
-| 3 | Contas, categorias, transações | 🔜 |
-| 4 | Orçamentos, contas a pagar, cartões | 🔜 |
-| 5 | Metas, relatórios, importação CSV | 🔜 |
+| 2 | Autenticação (cadastro, login, logout, recuperação) | ✅ Concluído |
+| 3 | Banco e família (modelos, família, membros, roles) | ✅ Concluído |
+| 4 | Contas financeiras e categorias | ✅ Concluído |
+| 5 | Transações com controle de saldo em tempo real | ✅ Concluído |
+| 6 | Dashboard financeiro com cards, gráficos e filtros | ✅ Concluído |
+| 7 | Orçamentos, contas a pagar e metas | 🔜 |
+| 8 | Relatórios | 🔜 |
+| 9 | Testes, segurança e qualidade | 🔜 |
+| 10 | Refinamento visual e entrega MVP | 🔜 |
