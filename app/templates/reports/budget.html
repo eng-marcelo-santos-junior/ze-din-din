@@ -1,0 +1,140 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Orçamento vs. Realizado{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Relatórios</a></li>
+<li class="breadcrumb-item active">Orçamento vs. Realizado</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-0">Orçamento vs. Realizado</h4>
+            <p class="text-muted small mb-0">
+                {{ pt_months[month - 1] }} {{ year }} — Planejado versus despesas reais.
+            </p>
+        </div>
+        <a href="{{ url_for('reports.budget_export', month=month, year=year) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i>Exportar CSV
+        </a>
+    </div>
+
+    {# Filtro mês/ano #}
+    <form method="get" class="mb-4">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <select name="month" class="form-select form-select-sm" style="width:auto;">
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {{ 'selected' if month == i }}>{{ pt_months[i-1] }}</option>
+                {% endfor %}
+            </select>
+            <input type="number" name="year" class="form-control form-control-sm" style="width:90px;"
+                   value="{{ year }}" min="2000" max="2100">
+            <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+            <a href="{{ url_for('budgets.index', month=month, year=year) }}"
+               class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-pencil me-1"></i>Editar orçamentos
+            </a>
+        </div>
+    </form>
+
+    {% if overview %}
+
+    {% set balance = total_planned - total_realized %}
+
+    {# Cards de totais #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Total Planejado</div>
+                    <div class="fw-bold text-primary fs-5">R$ {{ total_planned | money }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Total Realizado</div>
+                    <div class="fw-bold text-danger fs-5">R$ {{ total_realized | money }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Saldo</div>
+                    <div class="fw-bold fs-5 {{ 'text-success' if balance >= 0 else 'text-danger' }}">
+                        R$ {{ balance | money }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tabela detalhada #}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Categoria</th>
+                        <th class="text-end">Planejado</th>
+                        <th class="text-end">Realizado</th>
+                        <th class="text-end">Diferença</th>
+                        <th style="width:160px;">Progresso</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in overview %}
+                    {% set b = item.budget %}
+                    {% set diff = b.planned_amount_cents - item.realized_cents %}
+                    <tr>
+                        <td class="fw-semibold">{{ b.category.name }}</td>
+                        <td class="text-end">R$ {{ b.planned_amount_cents | money }}</td>
+                        <td class="text-end text-danger">R$ {{ item.realized_cents | money }}</td>
+                        <td class="text-end {{ 'text-success' if diff >= 0 else 'text-danger' }}">
+                            R$ {{ diff | money }}
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress flex-grow-1" style="height:8px;">
+                                    <div class="progress-bar
+                                        {{ 'bg-success' if item.health == 'healthy'
+                                           else 'bg-warning' if item.health == 'warning'
+                                           else 'bg-danger' }}"
+                                         style="width:{{ [item.pct, 100] | min }}%;"></div>
+                                </div>
+                                <small class="text-muted" style="width:36px; text-align:right;">{{ item.pct }}%</small>
+                            </div>
+                        </td>
+                        <td>
+                            {% if item.health == 'healthy' %}
+                            <span class="badge bg-success-subtle text-success-emphasis">Saudável</span>
+                            {% elif item.health == 'warning' %}
+                            <span class="badge bg-warning-subtle text-warning-emphasis">Atenção</span>
+                            {% else %}
+                            <span class="badge bg-danger-subtle text-danger-emphasis">Excedido</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-bullseye fs-1 d-block mb-3 opacity-25"></i>
+        <p>Nenhum orçamento cadastrado para este período.</p>
+        <a href="{{ url_for('budgets.new') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Criar orçamento
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

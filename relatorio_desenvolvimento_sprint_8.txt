@@ -1,0 +1,191 @@
+================================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 8
+Zé Din Din — Gestão Financeira Familiar
+Data: 2026-05-01
+================================================================
+
+1. RESUMO DO QUE FOI CRIADO
+================================================================
+
+Sprint 8 implementou o módulo de Relatórios com análises financeiras
+para toda a família. Cada relatório respeita o isolamento por family_id
+e ignora transações canceladas.
+
+RELATÓRIOS IMPLEMENTADOS
+-------------------------
+
+Fluxo de Caixa (/reports/cash-flow)
+- Receitas, despesas e resultado líquido mês a mês
+- Filtro de período (3, 6, 12 ou 24 meses)
+- Gráfico de barras com Chart.js (receitas vs. despesas)
+- Cards de totais do período
+- Tabela com todos os meses em ordem cronológica inversa
+- Exportação CSV
+
+Despesas por Categoria (/reports/categories)
+- Soma e percentual de gastos por categoria
+- Filtros: data inicial, data final, conta
+- Gráfico de rosca (doughnut) com cores das categorias
+- Seção adicional com despesas por membro da família
+- Exportação CSV
+
+Orçamento vs. Realizado (/reports/budget)
+- Comparação planejado × realizado por categoria e mês
+- Filtro de mês/ano
+- Barra de progresso com cor de saúde (healthy/warning/exceeded)
+- Cards de totais (planejado, realizado, saldo)
+- Link direto para editar orçamentos
+- Exportação CSV
+
+Maiores Despesas (/reports/biggest-expenses)
+- Top 20 maiores despesas em ordem decrescente
+- Filtros: data inicial, data final, conta
+- Tabela com data, descrição, categoria, conta, membro, valor
+- Exportação CSV
+
+Patrimônio Líquido (/reports/net-worth)
+- Soma dos saldos de todas as contas ativas
+- Separação de ativos (saldo positivo) e passivos (saldo negativo)
+- Tabela detalhada por conta com saldo atual e inicial
+- Cards de resumo
+
+Página de Índice (/reports)
+- Cards visuais com links para todos os relatórios
+- Descrição de cada relatório
+
+2. ARQUIVOS CRIADOS
+================================================================
+
+Blueprint:
+  app/reports/__init__.py
+  app/reports/services.py     — 7 funções de serviço
+  app/reports/routes.py       — 10 rotas (5 relatórios + 4 exports + index)
+
+Templates:
+  app/templates/reports/index.html
+  app/templates/reports/cash_flow.html
+  app/templates/reports/categories.html
+  app/templates/reports/budget.html
+  app/templates/reports/biggest_expenses.html
+  app/templates/reports/net_worth.html
+
+Testes:
+  tests/test_reports.py       — 41 testes
+
+Arquivos atualizados:
+  app/__init__.py             — registra reports_bp, adiciona filtro abs ao Jinja2
+  app/templates/layout_private.html — ativa link "Relatórios" no sidebar
+
+3. FUNÇÕES DE SERVIÇO
+================================================================
+
+get_monthly_cash_flow(family_id, num_months=12)
+  → list[dict] com label, year, month, income_cents, expense_cents, result_cents
+
+get_expenses_by_category(family_id, start_date, end_date, account_id)
+  → list[dict] com name, color, total_cents, pct
+
+get_expenses_by_member(family_id, start_date, end_date)
+  → list[dict] com name, total_cents, pct
+
+get_budget_vs_actual(family_id, month, year)
+  → delega para budgets.services.get_budget_overview()
+
+get_biggest_expenses(family_id, start_date, end_date, account_id, limit=20)
+  → list[Transaction] carregados com account, category e user via joinedload
+
+get_net_worth_summary(family_id)
+  → dict com accounts, total_assets, total_liabilities, net_worth
+
+get_recurring_expenses(family_id, start_date, end_date)
+  → list[Transaction] com recurring_rule_id preenchido
+
+4. EXPORTAÇÃO CSV
+================================================================
+
+Rotas de export:
+  GET /reports/cash-flow/export
+  GET /reports/categories/export
+  GET /reports/budget/export
+  GET /reports/biggest-expenses/export
+
+Todas aceitam os mesmos parâmetros de filtro das rotas principais.
+Content-Type: text/csv; charset=utf-8
+Content-Disposition: attachment; filename=<nome_arquivo>.csv
+
+5. ESTRUTURA DE PASTAS (SPRINT 8)
+================================================================
+
+ze-din-din/
+├── app/
+│   ├── reports/
+│   │   ├── __init__.py
+│   │   ├── routes.py
+│   │   └── services.py
+│   └── templates/
+│       └── reports/
+│           ├── index.html
+│           ├── cash_flow.html
+│           ├── categories.html
+│           ├── budget.html
+│           ├── biggest_expenses.html
+│           └── net_worth.html
+└── tests/
+    └── test_reports.py
+
+6. PRINCIPAIS COMANDOS PARA RODAR
+================================================================
+
+# Ambiente local:
+.venv/Scripts/python.exe run.py
+
+# Docker:
+docker compose up -d
+http://localhost:5000/reports
+
+7. COMO RODAR TESTES
+================================================================
+
+# Somente Sprint 8:
+.venv/Scripts/python.exe -m pytest tests/test_reports.py -v
+
+# Suite completa:
+.venv/Scripts/python.exe -m pytest -q
+
+# Resultado Sprint 8: 41/41 passed
+# Resultado suite completa: 263/263 passed
+
+8. RESULTADOS DOS TESTES
+================================================================
+
+test_reports.py — 41 testes
+
+TestFluxoDeCaixa          (8): lista meses, zeros, receita, despesa, resultado,
+                               cancelada, label, isolamento
+TestDespesasPorCategoria  (6): vazio, soma, percentual, cancelada, filtro data, isolamento
+TestOrcamentoVsRealizado  (3): vazio, compara planejado×realizado, isolamento
+TestMaioresDespesas       (6): vazio, ordenação, limite, cancelada, filtro conta, isolamento
+TestPatrimonioLiquido     (4): sem contas, positivo, ativos vs passivos, isolamento
+TestRotasReports         (14): login obrigatório, 200 para autenticados,
+                               CSV para exports, filtro meses
+
+9. PRÓXIMOS PASSOS RECOMENDADOS
+================================================================
+
+Sprint 9 — Testes, segurança e qualidade:
+  - Paginação nas listas de transações e bills
+  - Validação de roles (ADMIN x MEMBER x RESTRICTED)
+  - Cobertura de testes ≥ 80% com pytest-cov
+  - Lint com ruff + black + isort
+  - Revisão de queries N+1
+
+Sprint 10 — Refinamento visual e entrega do MVP:
+  - Cartões de crédito (modelo CreditCard + Invoice)
+  - Importação CSV de transações
+  - Notificações de bills vencidas no dashboard
+  - Revisão de responsividade mobile
+  - Documentação técnica final (docs/)
+
+================================================================
+FIM DO RELATÓRIO — SPRINT 8
+================================================================

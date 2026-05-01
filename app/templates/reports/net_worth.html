@@ -1,0 +1,111 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Patrimônio Líquido{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Relatórios</a></li>
+<li class="breadcrumb-item active">Patrimônio Líquido</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+    <h4 class="fw-bold mb-1">Patrimônio Líquido</h4>
+    <p class="text-muted mb-4">Saldo consolidado de todas as contas ativas da família.</p>
+
+    {# Cards de resumo #}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Ativos (saldos positivos)</div>
+                    <div class="fw-bold text-success fs-4">R$ {{ summary.total_assets | money }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Passivos (saldos negativos)</div>
+                    <div class="fw-bold text-danger fs-4">R$ {{ summary.total_liabilities | money }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm border-start border-4
+                         {{ 'border-success' if summary.net_worth >= 0 else 'border-danger' }}">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Patrimônio Líquido</div>
+                    <div class="fw-bold fs-4
+                                {{ 'text-success' if summary.net_worth >= 0 else 'text-danger' }}">
+                        R$ {{ summary.net_worth | money }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Tabela de contas #}
+    {% if summary.accounts %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-3 fw-semibold">
+            Contas ativas
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Conta</th>
+                        <th>Tipo</th>
+                        <th class="text-end">Saldo Atual</th>
+                        <th class="text-end">Saldo Inicial</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for acc in summary.accounts %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="rounded-circle d-flex align-items-center justify-content-center"
+                                      style="width:32px;height:32px;background:{{ acc.color }}20;color:{{ acc.color }}; flex-shrink:0;">
+                                    <i class="{{ acc.icon }} small"></i>
+                                </span>
+                                <span class="fw-semibold">{{ acc.name }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ acc.type }}</span>
+                        </td>
+                        <td class="text-end fw-bold
+                                   {{ 'text-success' if acc.current_balance_cents >= 0 else 'text-danger' }}">
+                            R$ {{ acc.current_balance_cents | money }}
+                        </td>
+                        <td class="text-end text-muted">
+                            R$ {{ acc.initial_balance_cents | money }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <th colspan="2">Total</th>
+                        <th class="text-end {{ 'text-success' if summary.net_worth >= 0 else 'text-danger' }}">
+                            R$ {{ summary.net_worth | money }}
+                        </th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-bank fs-1 d-block mb-3 opacity-25"></i>
+        <p>Nenhuma conta ativa encontrada.</p>
+        <a href="{{ url_for('accounts.new') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i>Adicionar conta
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

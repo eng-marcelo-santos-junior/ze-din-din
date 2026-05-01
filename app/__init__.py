@@ -17,6 +17,7 @@ def create_app(config_name: str = 'default') -> Flask:
 
     from .utils.money import format_cents_to_money
     app.jinja_env.filters['money'] = format_cents_to_money
+    app.jinja_env.filters['abs'] = abs
 
     @app.context_processor
     def inject_globals():
@@ -56,5 +57,8 @@ def create_app(config_name: str = 'default') -> Flask:
 
     from .goals import goals_bp
     app.register_blueprint(goals_bp)
+
+    from .reports import reports_bp
+    app.register_blueprint(reports_bp)
 
     return app

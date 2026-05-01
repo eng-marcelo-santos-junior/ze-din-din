@@ -1,0 +1,157 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Fluxo de Caixa{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Relatórios</a></li>
+<li class="breadcrumb-item active">Fluxo de Caixa</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-0">Fluxo de Caixa</h4>
+            <p class="text-muted small mb-0">Receitas, despesas e resultado dos últimos {{ num_months }} meses.</p>
+        </div>
+        <a href="{{ url_for('reports.cash_flow_export', months=num_months) }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i>Exportar CSV
+        </a>
+    </div>
+
+    {# Filtro de período #}
+    <form method="get" class="mb-4">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <label class="form-label mb-0 small fw-semibold">Meses:</label>
+            {% for opt in [3, 6, 12, 24] %}
+            <a href="{{ url_for('reports.cash_flow', months=opt) }}"
+               class="btn btn-sm {{ 'btn-primary' if num_months == opt else 'btn-outline-secondary' }}">
+                {{ opt }}
+            </a>
+            {% endfor %}
+        </div>
+    </form>
+
+    {% if data %}
+
+    {# Cards de totais #}
+    {% set total_income = data | sum(attribute='income_cents') %}
+    {% set total_expense = data | sum(attribute='expense_cents') %}
+    {% set total_result = total_income - total_expense %}
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Total Receitas</div>
+                    <div class="fw-bold text-success fs-5">R$ {{ total_income | money }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Total Despesas</div>
+                    <div class="fw-bold text-danger fs-5">R$ {{ total_expense | money }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-3">
+                    <div class="text-muted small">Resultado</div>
+                    <div class="fw-bold fs-5 {{ 'text-success' if total_result >= 0 else 'text-danger' }}">
+                        R$ {{ total_result | money }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Gráfico #}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <canvas id="cashFlowChart" height="100"></canvas>
+        </div>
+    </div>
+
+    {# Tabela #}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mês</th>
+                        <th class="text-end">Receitas</th>
+                        <th class="text-end">Despesas</th>
+                        <th class="text-end">Resultado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data | reverse %}
+                    <tr>
+                        <td class="fw-semibold">{{ row.label }}</td>
+                        <td class="text-end text-success">R$ {{ row.income_cents | money }}</td>
+                        <td class="text-end text-danger">R$ {{ row.expense_cents | money }}</td>
+                        <td class="text-end fw-semibold {{ 'text-success' if row.result_cents >= 0 else 'text-danger' }}">
+                            R$ {{ row.result_cents | money }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-bar-chart-line fs-1 d-block mb-3 opacity-25"></i>
+        <p>Nenhuma transação encontrada no período.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const labels = {{ data | map(attribute='label') | list | tojson }};
+const income = {{ data | map(attribute='income_cents') | list | tojson }};
+const expense = {{ data | map(attribute='expense_cents') | list | tojson }};
+const result = {{ data | map(attribute='result_cents') | list | tojson }};
+
+const fmt = v => 'R$ ' + (v / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2});
+
+new Chart(document.getElementById('cashFlowChart'), {
+    type: 'bar',
+    data: {
+        labels,
+        datasets: [
+            {
+                label: 'Receitas',
+                data: income.map(v => v / 100),
+                backgroundColor: 'rgba(25,135,84,.7)',
+                borderRadius: 4,
+            },
+            {
+                label: 'Despesas',
+                data: expense.map(v => v / 100),
+                backgroundColor: 'rgba(220,53,69,.7)',
+                borderRadius: 4,
+            },
+        ],
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: ctx => fmt(ctx.raw * 100) } },
+        },
+        scales: {
+            y: {
+                ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') },
+            },
+        },
+    },
+});
+</script>
+{% endblock %}
