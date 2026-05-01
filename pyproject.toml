@@ -3,19 +3,37 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+addopts = "-q --tb=short"
 
 [tool.black]
 line-length = 100
 target-version = ["py312"]
+exclude = '''
+/(
+    migrations
+  | .venv
+  | __pycache__
+)/
+'''
 
 [tool.isort]
 profile = "black"
 line_length = 100
+skip = ["migrations", ".venv"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+exclude = ["migrations", ".venv"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W"]
 ignore = ["E501"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/models/__init__.py", "migrations/*", ".venv/*"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = false

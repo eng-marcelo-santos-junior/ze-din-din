@@ -152,5 +152,5 @@ ze-din-din/
 | 6 | Dashboard financeiro com cards, gráficos e filtros | ✅ Concluído |
 | 7 | Orçamentos, contas a pagar e metas | ✅ Concluído |
 | 8 | Relatórios financeiros com exportação CSV | ✅ Concluído |
-| 9 | Testes, segurança e qualidade | 🔜 |
+| 9 | Testes, segurança e qualidade | ✅ Concluído |
 | 10 | Refinamento visual e entrega MVP | 🔜 |

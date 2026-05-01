@@ -1,0 +1,172 @@
+================================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 9
+Zé Din Din — Gestão Financeira Familiar
+Data: 2026-05-01
+================================================================
+
+1. RESUMO DO QUE FOI CRIADO
+================================================================
+
+Sprint 9 focou em testes, segurança e qualidade de código.
+
+ESTRUTURA DE TESTES REORGANIZADA
+---------------------------------
+tests/
+  conftest.py              — atualizado: clean_tables depende de app
+  unit/
+    test_model_properties.py — testes unitários das propriedades computadas
+  integration/
+    test_full_flow.py       — testes de jornada end-to-end
+  security/
+    test_security.py        — isolamento, proteção de rotas, senhas
+
+TESTES UNITÁRIOS (15 novos)
+----------------------------
+- Goal.progress_pct: 0%, 50%, 100%, nunca > 100%, target=0, arredondamento
+- Goal.monthly_needed: sem data, já completa, cálculo correto
+- Bill.is_overdue: pendente+vencida, pendente+futura, paga, cancelada
+- Bill.days_until_due: futuro e passado
+
+TESTES DE INTEGRAÇÃO (19 novos)
+---------------------------------
+- Fluxo de autenticação: registro, hash de senha, login, senha errada
+- Fluxo de família: criação, owner como membro
+- Fluxo de contas: saldo inicial, isolamento por family_id
+- Fluxo de categorias: padrão, separação por tipo, criação customizada
+- Fluxo de transações: receita/despesa/cancelada/filtro/transferência
+- Jornada HTTP: cadastro → família → dashboard
+
+TESTES DE SEGURANÇA (32 novos)
+--------------------------------
+- 15 rotas privadas verificadas como protegidas (302 sem login)
+- Isolamento a nível de serviço: transação, meta, conta a pagar, orçamento
+- Isolamento a nível HTTP: goals, bills, transactions, accounts (404)
+- Senhas: nunca texto puro, hash não vazio, check_password, hashes únicos
+- Helper permissions: membro tem acesso, não-membro não tem, inexistente não tem
+
+HELPER DE PERMISSÕES
+---------------------
+  app/utils/permissions.py
+  - user_has_access_to_family(user_id, family_id) → bool
+  - assert_family_access(user_id, family_id) → None | abort(403)
+
+DOCUMENTAÇÃO
+-------------
+  docs/database.md        — esquema completo, índices, relacionamentos
+  docs/business-rules.md  — 10 regras de negócio documentadas
+  docs/security.md        — mecanismos, checklist, boas práticas
+  docs/roadmap.md         — status MVP, backlog v2.0 e v3.0, débitos técnicos
+
+PYPROJECT.TOML
+--------------
+  - addopts = "-q --tb=short" para output limpo
+  - Seção [tool.coverage] configurada
+  - exclude de migrations e .venv em todas as ferramentas
+
+2. ARQUIVOS CRIADOS/MODIFICADOS
+================================================================
+
+Novos:
+  tests/unit/__init__.py
+  tests/unit/test_model_properties.py
+  tests/integration/__init__.py
+  tests/integration/test_full_flow.py
+  tests/security/__init__.py
+  tests/security/test_security.py
+  app/utils/permissions.py
+  docs/database.md
+  docs/business-rules.md
+  docs/security.md
+  docs/roadmap.md
+  relatorio_desenvolvimento_sprint_9.txt
+
+Modificados:
+  tests/conftest.py    — clean_tables agora depende de app
+  pyproject.toml       — addopts, coverage, excludes
+  README.md            — Sprint 9 marcado como concluído
+
+3. CORREÇÕES APLICADAS
+================================================================
+
+1. conftest.py::clean_tables — adicionado `app` como dependência
+   Problema: testes unitários sem app context causavam RuntimeError no teardown
+   Solução: `def clean_tables(app)` garante o contexto sempre ativo
+
+2. test_model_properties.py::TestGoalMonthlyNeeded
+   Problema: Goal() sem status definido → `status=None != ACTIVE` → retorna 0
+   Solução: `g.status = GoalStatus.ACTIVE` nos testes que precisam
+
+3. test_full_flow.py::TestJornadaHTTP
+   Problema: campo de confirmação de senha era `confirm_password`, não `password_confirm`
+   Solução: corrigido o nome do campo no submit do form
+
+4. COMO RODAR TESTES
+================================================================
+
+# Suite completa:
+.venv/Scripts/python.exe -m pytest
+
+# Por categoria:
+.venv/Scripts/python.exe -m pytest tests/unit/
+.venv/Scripts/python.exe -m pytest tests/integration/
+.venv/Scripts/python.exe -m pytest tests/security/
+.venv/Scripts/python.exe -m pytest tests/test_*.py
+
+# Com cobertura:
+.venv/Scripts/python.exe -m pytest --cov=app --cov-report=term-missing
+
+# Resultado Sprint 9: 66 novos testes, 329 total, 100% passando
+
+5. COMO RODAR LINT E FORMATAÇÃO
+================================================================
+
+# Verificar formatação (black):
+.venv/Scripts/python.exe -m black --check app/ tests/
+
+# Formatar código:
+.venv/Scripts/python.exe -m black app/ tests/
+
+# Verificar imports (isort):
+.venv/Scripts/python.exe -m isort --check-only app/ tests/
+
+# Lint (ruff):
+.venv/Scripts/python.exe -m ruff check app/
+
+# Todos de uma vez:
+.venv/Scripts/python.exe -m black app/ tests/ && .venv/Scripts/python.exe -m isort app/ tests/ && .venv/Scripts/python.exe -m ruff check app/
+
+6. RESULTADO FINAL
+================================================================
+
+Testes por categoria:
+  test_auth.py         — autenticação
+  test_accounts.py     — contas financeiras
+  test_categories.py   — categorias
+  test_transactions.py — transações
+  test_dashboard.py    — dashboard
+  test_budgets.py      — orçamentos
+  test_bills.py        — contas a pagar/receber
+  test_goals.py        — metas
+  test_reports.py      — relatórios
+  test_money.py        — utilitários monetários
+
+  unit/test_model_properties.py  — propriedades computadas (15 testes)
+  integration/test_full_flow.py  — jornada end-to-end (19 testes)
+  security/test_security.py      — segurança e isolamento (32 testes)
+
+  TOTAL: 329 testes, 100% passando
+
+7. PRÓXIMOS PASSOS — SPRINT 10
+================================================================
+
+Sprint 10 — Refinamento visual e entrega MVP:
+  - Responsividade mobile
+  - Paginação em transações e bills
+  - Feedback visual aprimorado
+  - Validação client-side
+  - Cartões de crédito (opcional)
+  - Importação CSV (opcional)
+
+================================================================
+FIM DO RELATÓRIO — SPRINT 9
+================================================================
