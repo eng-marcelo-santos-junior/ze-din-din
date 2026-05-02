@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from flask import Flask
 from .config import config
@@ -7,6 +8,16 @@ from .extensions import db, migrate, login_manager, csrf
 def create_app(config_name: str = 'default') -> Flask:
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+
+    # Class-level os.environ.get() in config.py evaluates at import time, which
+    # in Vercel's uv runtime may precede env var injection. Re-read here to guarantee
+    # DATABASE_URL is captured at actual invocation time.
+    if not app.config.get('SQLALCHEMY_DATABASE_URI'):
+        raw_url = os.environ.get('DATABASE_URL', '')
+        if raw_url:
+            app.config['SQLALCHEMY_DATABASE_URI'] = raw_url.replace(
+                'postgres://', 'postgresql://', 1
+            )
 
     db.init_app(app)
     migrate.init_app(app, db)
