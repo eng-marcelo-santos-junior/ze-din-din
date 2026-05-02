@@ -14,10 +14,10 @@
         <div class="collapse navbar-collapse" id="heroNav">
             <ul class="navbar-nav ms-auto align-items-center gap-2">
                 <li class="nav-item">
-                    <a class="nav-link text-white fw-medium" href="#">Entrar</a>
+                    <a class="nav-link text-white fw-medium" href="{{ url_for('auth.login') }}">Entrar</a>
                 </li>
                 <li class="nav-item">
-                    <a class="btn btn-warning text-dark fw-semibold px-4" href="#">
+                    <a class="btn btn-warning text-dark fw-semibold px-4" href="{{ url_for('auth.register') }}">
                         Começar grátis
                     </a>
                 </li>
@@ -45,7 +45,7 @@
                 em um só lugar. Simples no dia a dia, poderoso no planejamento.
             </p>
             <div class="d-flex gap-3 justify-content-center flex-wrap">
-                <a href="#" class="btn btn-warning btn-lg text-dark fw-bold px-5 shadow-lg">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg text-dark fw-bold px-5 shadow-lg">
                     <i class="bi bi-rocket-takeoff me-2"></i>Começar grátis
                 </a>
                 <a href="#features" class="btn btn-outline-light btn-lg px-5">
@@ -184,7 +184,7 @@
     <div class="container py-4 text-center">
         <h2 class="fw-bold display-6 mb-3">Pronto para organizar as finanças?</h2>
         <p class="lead mb-4 opacity-90">Comece hoje mesmo. É gratuito e fácil de usar.</p>
-        <a href="#" class="btn btn-warning btn-lg text-dark fw-bold px-5 shadow-lg">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-warning btn-lg text-dark fw-bold px-5 shadow-lg">
             <i class="bi bi-rocket-takeoff me-2"></i>Criar conta grátis
         </a>
     </div>

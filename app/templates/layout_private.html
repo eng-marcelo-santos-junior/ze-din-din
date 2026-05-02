@@ -12,6 +12,7 @@
 </head>
 <body class="bg-light">
 
+<div id="sidebarBackdrop" class="sidebar-backdrop"></div>
 <div class="d-flex" style="min-height: 100vh;">
 
     {# ── Sidebar ───────────────────────────────────────────────────────────── #}
@@ -102,7 +103,9 @@
 
         {# User footer #}
         <div class="px-3 py-3 border-top border-white border-opacity-10">
-            <div class="d-flex align-items-center gap-2 mb-3">
+            <a href="{{ url_for('main.profile') }}"
+               class="d-flex align-items-center gap-2 mb-3 text-decoration-none
+                      {{ 'sidebar-link active mx-n2 px-2 py-1 rounded' if request.endpoint == 'main.profile' else '' }}">
                 <div class="avatar-sm bg-success rounded-circle d-flex align-items-center justify-content-center flex-shrink-0">
                     <span class="text-white fw-bold small">{{ current_user.name[0].upper() }}</span>
                 </div>
@@ -112,7 +115,7 @@
                         {{ current_user.email }}
                     </div>
                 </div>
-            </div>
+            </a>
             <a href="{{ url_for('auth.logout') }}"
                class="btn btn-outline-light btn-sm w-100 d-flex align-items-center justify-content-center gap-1">
                 <i class="bi bi-box-arrow-right"></i>Sair
@@ -154,6 +157,13 @@
                         <span class="dropdown-item-text text-muted" style="font-size:12px;">
                             {{ current_user.email }}
                         </span>
+                    </li>
+                    <li><hr class="dropdown-divider my-1"></li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center gap-2"
+                           href="{{ url_for('main.profile') }}">
+                            <i class="bi bi-person-circle"></i>Meu Perfil
+                        </a>
                     </li>
                     <li><hr class="dropdown-divider my-1"></li>
                     <li>

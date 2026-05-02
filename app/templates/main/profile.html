@@ -1,0 +1,126 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Meu Perfil{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Meu Perfil</li>
+{% endblock %}
+
+{% block content %}
+{% set ROLE_LABELS = {
+    'OWNER':      ('primary',   'Proprietário'),
+    'ADMIN':      ('success',   'Administrador'),
+    'MEMBER':     ('secondary', 'Membro'),
+    'RESTRICTED': ('warning',   'Restrito'),
+} %}
+<div class="py-4">
+
+  <div class="row g-4 justify-content-center">
+    <div class="col-lg-7">
+
+      {# ── Card do usuário ───────────────────────────────────────────────────── #}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-center gap-4 mb-4">
+            <div class="rounded-circle bg-success d-flex align-items-center justify-content-center flex-shrink-0"
+                 style="width:72px;height:72px;">
+              <span class="text-white fw-bold" style="font-size:1.75rem;">
+                {{ current_user.name[0].upper() }}
+              </span>
+            </div>
+            <div>
+              <h4 class="fw-bold mb-1">{{ current_user.name }}</h4>
+              <div class="text-muted">
+                <i class="bi bi-envelope me-1"></i>{{ current_user.email }}
+              </div>
+              {% if membership %}
+              {% set role_info = ROLE_LABELS.get(membership.role.value if membership.role else membership.role, ('secondary', membership.role)) %}
+              <div class="mt-1">
+                <span class="badge bg-{{ role_info[0] }}-subtle text-{{ role_info[0] }}-emphasis">
+                  {{ role_info[1] }}
+                </span>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <hr class="my-3">
+
+          <dl class="row mb-0 small">
+            <dt class="col-sm-4 text-muted fw-normal">Nome</dt>
+            <dd class="col-sm-8 fw-semibold">{{ current_user.name }}</dd>
+
+            <dt class="col-sm-4 text-muted fw-normal">E-mail</dt>
+            <dd class="col-sm-8 fw-semibold">{{ current_user.email }}</dd>
+
+            <dt class="col-sm-4 text-muted fw-normal">Membro desde</dt>
+            <dd class="col-sm-8 fw-semibold">
+              {{ current_user.created_at.strftime('%d/%m/%Y') }}
+            </dd>
+
+            <dt class="col-sm-4 text-muted fw-normal">Status</dt>
+            <dd class="col-sm-8">
+              <span class="badge bg-success-subtle text-success-emphasis">Ativo</span>
+            </dd>
+          </dl>
+        </div>
+      </div>
+
+      {# ── Card da família ───────────────────────────────────────────────────── #}
+      {% if family %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-house-fill text-success me-2"></i>Família
+          </h6>
+        </div>
+        <div class="card-body p-4">
+          <dl class="row mb-0 small">
+            <dt class="col-sm-4 text-muted fw-normal">Nome</dt>
+            <dd class="col-sm-8 fw-semibold">{{ family.name }}</dd>
+
+            <dt class="col-sm-4 text-muted fw-normal">Moeda</dt>
+            <dd class="col-sm-8 fw-semibold">{{ family.currency }}</dd>
+
+            {% if membership %}
+            {% set role_info = ROLE_LABELS.get(membership.role.value if membership.role else membership.role, ('secondary', membership.role)) %}
+            <dt class="col-sm-4 text-muted fw-normal">Seu papel</dt>
+            <dd class="col-sm-8">
+              <span class="badge bg-{{ role_info[0] }}-subtle text-{{ role_info[0] }}-emphasis">
+                {{ role_info[1] }}
+              </span>
+            </dd>
+
+            <dt class="col-sm-4 text-muted fw-normal">Entrou em</dt>
+            <dd class="col-sm-8 fw-semibold">
+              {{ membership.created_at.strftime('%d/%m/%Y') }}
+            </dd>
+            {% endif %}
+          </dl>
+
+          <div class="mt-3 d-flex gap-2 flex-wrap">
+            <a href="{{ url_for('families.members') }}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-people me-1"></i>Ver membros
+            </a>
+            <a href="{{ url_for('families.settings') }}" class="btn btn-outline-secondary btn-sm">
+              <i class="bi bi-gear me-1"></i>Configurações da família
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body py-4 text-center">
+          <i class="bi bi-house text-muted mb-2" style="font-size:2.5rem;"></i>
+          <p class="text-muted mb-3 small">Você ainda não pertence a uma família.</p>
+          <a href="{{ url_for('families.new') }}" class="btn btn-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Criar família
+          </a>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

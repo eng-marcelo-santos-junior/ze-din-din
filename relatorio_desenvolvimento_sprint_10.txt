@@ -1,0 +1,159 @@
+================================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 10
+Zé Din Din — Gestão Financeira Familiar
+Data: 2026-05-01
+================================================================
+
+1. RESUMO DO QUE FOI CRIADO
+================================================================
+
+Sprint 10 focou em refinamento visual, responsividade mobile
+e entrega final do MVP.
+
+RESPONSIVIDADE MOBILE — SIDEBAR OVERLAY
+-----------------------------------------
+app/static/css/main.css
+  - Sidebar escondida por padrão no mobile (< 992px)
+  - Abre como overlay ao clicar no hambúrguer
+  - Backdrop semitransparente ao abrir
+  - Fecha ao clicar fora da sidebar
+
+app/static/js/main.js
+  - Detecta mobile vs. desktop automaticamente
+  - Mobile: toggle sidebar-mobile-open + backdrop show
+  - Desktop: toggle sidebar-collapsed (display:none)
+  - Fecha sidebar mobile ao redimensionar para desktop
+
+app/templates/layout_private.html
+  - div#sidebarBackdrop adicionado antes do wrapper principal
+
+MÁSCARA DE ENTRADA MONETÁRIA
+------------------------------
+app/static/js/main.js
+  - initMoneyMask(): formata inputs com class "money-input"
+    ou atributo data-money em tempo real
+  - Formato pt-BR automático: "300000" → "3.000,00"
+  - Seleciona o conteúdo ao focar no campo
+
+PÁGINA DE PERFIL
+-----------------
+app/main/routes.py
+  - Rota GET /profile com @login_required
+  - Exibe usuário atual + família + papel (role)
+
+app/templates/main/profile.html
+  - Card com avatar, nome, e-mail, data de cadastro
+  - Card com dados da família e papel do usuário
+  - Botões para membros e configurações da família
+
+MELHORIAS DE NAVEGAÇÃO
+------------------------
+app/templates/layout_private.html
+  - Dropdown do usuário (top navbar): link "Meu Perfil" adicionado
+  - Sidebar footer: avatar do usuário vira link clicável para /profile
+  - Active state no perfil reconhecido no sidebar
+
+LANDING PAGE
+-------------
+app/templates/main/index.html
+  - Botões "Entrar", "Começar grátis" e "Criar conta grátis"
+    apontam para rotas reais (auth.login, auth.register)
+    em vez de href="#"
+
+README
+-------
+  - Sprint 10 marcado como ✅ Concluído
+
+2. ARQUIVOS CRIADOS/MODIFICADOS
+================================================================
+
+Novos:
+  app/templates/main/profile.html
+  relatorio_desenvolvimento_sprint_10.txt
+
+Modificados:
+  app/main/routes.py        — rota /profile adicionada
+  app/static/css/main.css   — mobile sidebar, backdrop, collapse
+  app/static/js/main.js     — sidebar mobile toggle, money mask
+  app/templates/layout_private.html — backdrop, profile link, active state
+  app/templates/main/index.html     — links reais nos botões CTA
+  README.md                         — Sprint 10 marcado como concluído
+
+3. COMO RODAR TESTES
+================================================================
+
+# Suite completa:
+.venv/Scripts/python.exe -m pytest
+
+# Por categoria:
+.venv/Scripts/python.exe -m pytest tests/unit/
+.venv/Scripts/python.exe -m pytest tests/integration/
+.venv/Scripts/python.exe -m pytest tests/security/
+
+# Com cobertura:
+.venv/Scripts/python.exe -m pytest --cov=app --cov-report=term-missing
+
+4. COMO RODAR A APLICAÇÃO
+================================================================
+
+# Com Docker Compose:
+docker compose up -d
+docker compose exec web flask db upgrade
+
+# Local (sem Docker):
+.venv/Scripts/python.exe run.py
+
+# Acesse: http://localhost:5000
+
+5. RESULTADO FINAL DO MVP
+================================================================
+
+Sprints concluídos:
+  Sprint 1  — Setup inicial, Docker, estrutura base        ✅
+  Sprint 2  — Autenticação (cadastro, login, logout)       ✅
+  Sprint 3  — Banco e família (modelos, roles)             ✅
+  Sprint 4  — Contas financeiras e categorias              ✅
+  Sprint 5  — Transações com controle de saldo             ✅
+  Sprint 6  — Dashboard com cards, gráficos e filtros      ✅
+  Sprint 7  — Orçamentos, contas a pagar e metas           ✅
+  Sprint 8  — Relatórios com exportação CSV                ✅
+  Sprint 9  — Testes, segurança e qualidade (329 testes)   ✅
+  Sprint 10 — Refinamento visual e entrega MVP             ✅
+
+Critérios de aceite atendidos:
+  ✅ Usuário consegue se cadastrar
+  ✅ Usuário consegue fazer login/logout
+  ✅ Usuário consegue criar família
+  ✅ Usuário consegue criar contas financeiras
+  ✅ Usuário consegue criar categorias
+  ✅ Usuário consegue lançar receitas e despesas
+  ✅ Dashboard mostra saldo, receitas e despesas
+  ✅ Filtros de transações funcionam
+  ✅ Orçamento mensal funciona
+  ✅ Contas a pagar/receber funcionam
+  ✅ Metas financeiras funcionam
+  ✅ Relatórios básicos com CSV funcionam
+  ✅ Valores armazenados em centavos
+  ✅ Isolamento por família funcionando
+  ✅ Rotas privadas protegidas
+  ✅ 329 testes passando
+  ✅ Projeto roda com Docker Compose
+  ✅ README completo
+  ✅ Código organizado em módulos (Blueprints)
+  ✅ Interface responsiva (mobile sidebar overlay)
+  ✅ Página de perfil do usuário
+
+6. PRÓXIMOS PASSOS — PÓS-MVP (v2.0)
+================================================================
+
+  - Cartões de crédito (faturas, parcelamentos)
+  - Importação de CSV bancário
+  - Notificações de vencimento por e-mail
+  - Open Finance / integração bancária
+  - Aplicativo mobile nativo
+  - Autenticação de dois fatores
+  - Exportação PDF de relatórios
+
+================================================================
+FIM DO RELATÓRIO — SPRINT 10
+================================================================
