@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+from sqlalchemy.pool import NullPool
 
 
 class Config:
@@ -32,7 +33,20 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     REMEMBER_COOKIE_SECURE = True
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+
+    # Neon e Heroku retornam "postgres://" — SQLAlchemy exige "postgresql://"
+    _raw_url = os.environ.get('DATABASE_URL', '')
+    SQLALCHEMY_DATABASE_URI = (
+        _raw_url.replace('postgres://', 'postgresql://', 1) if _raw_url else None
+    )
+
+    # NullPool obrigatório em serverless: sem conexões persistentes entre invocações
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'poolclass': NullPool,
+    }
 
 
 config = {
