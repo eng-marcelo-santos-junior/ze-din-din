@@ -1,0 +1,23 @@
+# Ambiente local
+.env
+.env.*
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker/
+
+# Testes
+tests/
+
+# Documentação e relatórios
+docs/
+relatorio_desenvolvimento_sprint_*.txt
+
+# Editor
+.vscode/
+.idea/
