@@ -1,0 +1,184 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Despesas por Categoria{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('reports.index') }}">Relatórios</a></li>
+<li class="breadcrumb-item active">Despesas por Categoria</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-0">Despesas por Categoria</h4>
+            <p class="text-muted small mb-0">Distribuição dos gastos por categoria no período selecionado.</p>
+        </div>
+        <a href="{{ url_for('reports.categories_export',
+                start_date=start_date.isoformat() if start_date else '',
+                end_date=end_date.isoformat() if end_date else '',
+                account_id=account_id or '') }}"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-download me-1"></i>Exportar CSV
+        </a>
+    </div>
+
+    {# Filtros #}
+    <form method="get" class="card border-0 shadow-sm p-3 mb-4">
+        <div class="row g-2 align-items-end">
+            <div class="col-sm-3">
+                <label class="form-label small">Data inicial</label>
+                <input type="date" name="start_date" class="form-control form-control-sm"
+                       value="{{ start_date.isoformat() if start_date else '' }}">
+            </div>
+            <div class="col-sm-3">
+                <label class="form-label small">Data final</label>
+                <input type="date" name="end_date" class="form-control form-control-sm"
+                       value="{{ end_date.isoformat() if end_date else '' }}">
+            </div>
+            <div class="col-sm-4">
+                <label class="form-label small">Conta</label>
+                <select name="account_id" class="form-select form-select-sm">
+                    <option value="">Todas as contas</option>
+                    {% for a in accounts %}
+                    <option value="{{ a.id }}" {{ 'selected' if account_id == a.id }}>{{ a.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100">Filtrar</button>
+            </div>
+        </div>
+    </form>
+
+    {% if data %}
+    {% set total_cents = data | sum(attribute='total_cents') %}
+
+    <div class="row g-4 mb-4">
+        {# Gráfico #}
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0 fw-semibold">
+                    Distribuição
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    <canvas id="catChart" style="max-height:280px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        {# Tabela #}
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 pt-3 pb-0 fw-semibold">
+                    Total por categoria
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Categoria</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-end" style="width:80px;">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in data %}
+                            <tr>
+                                <td>
+                                    <span class="badge rounded-pill me-1"
+                                          style="background:{{ row.color }}; width:10px; height:10px; padding:0; display:inline-block; vertical-align:middle;"></span>
+                                    {{ row.name }}
+                                </td>
+                                <td class="text-end text-danger">R$ {{ row.total_cents | money }}</td>
+                                <td class="text-end">
+                                    <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ row.pct }}%</span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th>Total</th>
+                                <th class="text-end text-danger">R$ {{ total_cents | money }}</th>
+                                <th class="text-end">100%</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Despesas por membro #}
+    {% if member_data %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-3 pb-0 fw-semibold">
+            Despesas por membro
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Membro</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in member_data %}
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td class="text-end text-danger">R$ {{ row.total_cents | money }}</td>
+                        <td class="text-end">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis">{{ row.pct }}%</span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-pie-chart fs-1 d-block mb-3 opacity-25"></i>
+        <p>Nenhuma despesa encontrada no período selecionado.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if data %}
+<script>
+const catLabels = {{ data | map(attribute='name') | list | tojson }};
+const catValues = {{ data | map(attribute='total_cents') | list | tojson }};
+const catColors = {{ data | map(attribute='color') | list | tojson }};
+
+new Chart(document.getElementById('catChart'), {
+    type: 'doughnut',
+    data: {
+        labels: catLabels,
+        datasets: [{
+            data: catValues.map(v => v / 100),
+            backgroundColor: catColors,
+            borderWidth: 2,
+        }],
+    },
+    options: {
+        cutout: '62%',
+        plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 12, padding: 12 } },
+            tooltip: {
+                callbacks: {
+                    label: ctx => ' R$ ' + (ctx.raw).toLocaleString('pt-BR', {minimumFractionDigits: 2}),
+                },
+            },
+        },
+    },
+});
+</script>
+{% endif %}
+{% endblock %}

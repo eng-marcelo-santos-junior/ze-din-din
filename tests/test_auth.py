@@ -75,7 +75,15 @@ class TestRotasAuth:
         assert response.status_code == 302
         assert '/auth/login' in response.headers['Location']
 
-    def test_cadastro_via_post_redireciona_para_dashboard(self, client):
+    def test_dashboard_redireciona_sem_familia(self, app_ctx, client):
+        from app.auth.services import register_user
+        register_user('Sem Familia', 'semfamilia@test.com', 'senha1234')
+        client.post('/auth/login', data={'email': 'semfamilia@test.com', 'password': 'senha1234'})
+        response = client.get('/dashboard', follow_redirects=False)
+        assert response.status_code == 302
+        assert '/families/new' in response.headers['Location']
+
+    def test_cadastro_via_post_redireciona_para_criar_familia(self, client):
         response = client.post('/auth/register', data={
             'name': 'Novo Usuario',
             'email': 'novo@test.com',
@@ -83,16 +91,16 @@ class TestRotasAuth:
             'confirm_password': 'senha1234',
         }, follow_redirects=False)
         assert response.status_code == 302
-        assert '/dashboard' in response.headers['Location']
+        assert '/families/new' in response.headers['Location']
 
-    def test_login_valido_redireciona_para_dashboard(self, app_ctx, client):
+    def test_login_sem_familia_redireciona_para_criar_familia(self, app_ctx, client):
         register_user('Login Test', 'login@test.com', 'senha1234')
         response = client.post('/auth/login', data={
             'email': 'login@test.com',
             'password': 'senha1234',
         }, follow_redirects=False)
         assert response.status_code == 302
-        assert '/dashboard' in response.headers['Location']
+        assert '/families/new' in response.headers['Location']
 
     def test_login_invalido_permanece_na_pagina(self, client):
         response = client.post('/auth/login', data={

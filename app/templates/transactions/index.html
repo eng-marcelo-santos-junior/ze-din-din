@@ -1,0 +1,244 @@
+{% extends 'layout_private.html' %}
+{% block title %}Transações{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Transações</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+    {# ── Cabeçalho ── #}
+    <div class="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
+        <h4 class="fw-bold mb-0">Transações</h4>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('transactions.transfer') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-left-right me-1"></i>Transferência
+            </a>
+            <a href="{{ url_for('transactions.new') }}" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Nova transação
+            </a>
+        </div>
+    </div>
+
+    {# ── Cards de resumo ── #}
+    <div class="row g-3 mb-3">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small mb-1">Receitas</div>
+                <div class="fs-5 fw-bold text-success">+ R$ {{ summary.income_cents | money }}</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small mb-1">Despesas</div>
+                <div class="fs-5 fw-bold text-danger">- R$ {{ summary.expense_cents | money }}</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3">
+                <div class="text-muted small mb-1">Resultado</div>
+                <div class="fs-5 fw-bold {{ 'text-success' if summary.result_cents >= 0 else 'text-danger' }}">
+                    R$ {{ summary.result_cents | money }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Filtros ── #}
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body py-2 px-3">
+            <form method="GET" action="{{ url_for('transactions.index') }}" class="row g-2 align-items-end">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">De</label>
+                    <input type="date" name="start_date" class="form-control form-control-sm"
+                           value="{{ args.get('start_date','') }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Até</label>
+                    <input type="date" name="end_date" class="form-control form-control-sm"
+                           value="{{ args.get('end_date','') }}">
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Tipo</label>
+                    <select name="type" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="INCOME"    {{ 'selected' if args.get('type')=='INCOME' }}>Receita</option>
+                        <option value="EXPENSE"   {{ 'selected' if args.get('type')=='EXPENSE' }}>Despesa</option>
+                        <option value="TRANSFER"  {{ 'selected' if args.get('type')=='TRANSFER' }}>Transferência</option>
+                        <option value="REFUND"    {{ 'selected' if args.get('type')=='REFUND' }}>Reembolso</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Conta</label>
+                    <select name="account_id" class="form-select form-select-sm">
+                        <option value="">Todas</option>
+                        {% for acc in accounts %}
+                        <option value="{{ acc.id }}" {{ 'selected' if args.get('account_id')|int == acc.id }}>
+                            {{ acc.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Status</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">Todos</option>
+                        <option value="PAID"     {{ 'selected' if args.get('status')=='PAID' }}>Pago</option>
+                        <option value="RECEIVED" {{ 'selected' if args.get('status')=='RECEIVED' }}>Recebido</option>
+                        <option value="PENDING"  {{ 'selected' if args.get('status')=='PENDING' }}>Pendente</option>
+                        <option value="CANCELED" {{ 'selected' if args.get('status')=='CANCELED' }}>Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1">Busca</label>
+                    <div class="input-group input-group-sm">
+                        <input type="text" name="q" class="form-control" placeholder="Descrição…"
+                               value="{{ args.get('q','') }}">
+                        <button class="btn btn-outline-secondary" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# ── Tabela ── #}
+    {% if pagination.items %}
+    <div class="card border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Data</th>
+                        <th>Descrição</th>
+                        <th>Conta</th>
+                        <th>Categoria</th>
+                        <th>Status</th>
+                        <th class="text-end pe-3">Valor</th>
+                        <th class="text-end pe-3">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for tx in pagination.items %}
+                <tr class="{{ 'table-secondary text-muted' if tx.status == 'CANCELED' }}">
+                    <td class="ps-3 text-nowrap">{{ tx.transaction_date.strftime('%d/%m/%Y') }}</td>
+                    <td>
+                        <div class="fw-semibold">{{ tx.description }}</div>
+                        {% if tx.is_transfer %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size:10px;">
+                            <i class="bi bi-arrow-left-right me-1"></i>Transferência
+                        </span>
+                        {% endif %}
+                        {% if tx.payment_method %}
+                        <span class="text-muted" style="font-size:10px;">· {{ tx.payment_method }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-muted">{{ tx.account.name }}</td>
+                    <td>
+                        {% if tx.category %}
+                        <span class="badge rounded-pill" style="background:{{ tx.category.color }}22; color:{{ tx.category.color }}; border:1px solid {{ tx.category.color }}44;">
+                            <i class="bi {{ tx.category.icon }} me-1"></i>{{ tx.category.name }}
+                        </span>
+                        {% else %}<span class="text-muted">—</span>{% endif %}
+                    </td>
+                    <td>
+                        {% set status_map = {'PAID':'success','RECEIVED':'success','PENDING':'warning','CANCELED':'secondary'} %}
+                        {% set status_label = {'PAID':'Pago','RECEIVED':'Recebido','PENDING':'Pendente','CANCELED':'Cancelado'} %}
+                        <span class="badge bg-{{ status_map.get(tx.status,'secondary') }}-subtle text-{{ status_map.get(tx.status,'secondary') }} border border-{{ status_map.get(tx.status,'secondary') }}-subtle">
+                            {{ status_label.get(tx.status, tx.status) }}
+                        </span>
+                    </td>
+                    <td class="text-end pe-3 text-nowrap fw-semibold">
+                        {% if tx.amount_cents >= 0 %}
+                        <span class="text-success">+ R$ {{ tx.display_amount_cents | money }}</span>
+                        {% else %}
+                        <span class="text-danger">- R$ {{ tx.display_amount_cents | money }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-3">
+                        <div class="d-flex gap-1 justify-content-end">
+                            {% if tx.status == 'PENDING' %}
+                            <form method="POST" action="{{ url_for('transactions.mark_paid', tx_id=tx.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-outline-success btn-sm" title="Marcar como pago">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            {% if not tx.is_transfer %}
+                            <a href="{{ url_for('transactions.edit', tx_id=tx.id) }}"
+                               class="btn btn-outline-secondary btn-sm" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="POST" action="{{ url_for('transactions.duplicate', tx_id=tx.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-outline-secondary btn-sm" title="Duplicar">
+                                    <i class="bi bi-copy"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                            <form method="POST" action="{{ url_for('transactions.delete', tx_id=tx.id) }}"
+                                  onsubmit="return confirm('Excluir esta transação?')">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="btn btn-outline-danger btn-sm" title="Excluir">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# ── Paginação ── #}
+    {% if pagination.pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm justify-content-center mb-0">
+            <li class="page-item {{ 'disabled' if not pagination.has_prev }}">
+                <a class="page-link" href="{{ page_url(pagination.prev_num) }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                <li class="page-item {{ 'active' if p == pagination.page }}">
+                    <a class="page-link" href="{{ page_url(p) }}">{{ p }}</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {{ 'disabled' if not pagination.has_next }}">
+                <a class="page-link" href="{{ page_url(pagination.next_num) }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+        </ul>
+        <p class="text-center text-muted small mt-2">
+            {{ pagination.total }} transação(ões) · página {{ pagination.page }} de {{ pagination.pages }}
+        </p>
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body py-5 text-center">
+            <i class="bi bi-arrow-left-right text-muted mb-3" style="font-size:3rem;"></i>
+            <h6 class="fw-bold mb-2">Nenhuma transação encontrada</h6>
+            <p class="text-muted small mb-3">
+                {% if args %}Tente alterar os filtros.{% else %}Comece registrando uma receita ou despesa.{% endif %}
+            </p>
+            <a href="{{ url_for('transactions.new') }}" class="btn btn-success btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Nova transação
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

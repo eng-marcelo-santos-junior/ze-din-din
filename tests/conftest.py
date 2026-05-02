@@ -18,13 +18,16 @@ def app():
 
 
 @pytest.fixture(autouse=True)
-def clean_tables():
+def clean_tables(app):
     """
     Após cada teste:
     1. Limpa o cache de usuário do Flask-Login (g._login_user persiste no
        contexto de sessão e causaria ObjectDeletedError no próximo teste).
     2. Remove a session SQLAlchemy.
     3. Apaga todas as linhas das tabelas.
+
+    Depende de `app` para garantir que o contexto de aplicação esteja ativo,
+    mesmo em testes unitários que não usam banco de dados diretamente.
     """
     yield
     if hasattr(g, '_login_user'):

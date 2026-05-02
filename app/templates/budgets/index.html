@@ -1,0 +1,170 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Orçamentos{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Orçamentos</li>
+{% endblock %}
+
+{% block content %}
+{% set PT_MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                    'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] %}
+<div class="py-4">
+
+  {# ── Cabeçalho ────────────────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <i class="bi bi-bullseye text-success me-2"></i>Orçamentos
+      </h4>
+      <p class="text-muted mb-0 small">
+        Planejado vs. realizado — {{ PT_MONTHS[month - 1] }} de {{ year }}
+      </p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap align-items-center">
+      {# Filtro de período #}
+      <form method="get" class="d-flex gap-2 align-items-center">
+        <select name="month" class="form-select form-select-sm" style="min-width:120px;">
+          {% for i in range(1, 13) %}
+          <option value="{{ i }}" {{ 'selected' if month == i }}>{{ PT_MONTHS[i-1] }}</option>
+          {% endfor %}
+        </select>
+        <select name="year" class="form-select form-select-sm" style="min-width:88px;">
+          {% for y in range(now.year - 2, now.year + 2) %}
+          <option value="{{ y }}" {{ 'selected' if year == y }}>{{ y }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-outline-secondary btn-sm">Filtrar</button>
+      </form>
+      {# Copiar mês anterior #}
+      <form method="POST" action="{{ url_for('budgets.copy_previous') }}">
+        {{ csrf_token_field() if csrf_token_field is defined else '' }}
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="month" value="{{ month }}">
+        <input type="hidden" name="year" value="{{ year }}">
+        <button type="submit" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-copy me-1"></i>Copiar mês anterior
+        </button>
+      </form>
+      <a href="{{ url_for('budgets.new', month=month, year=year) }}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Novo orçamento
+      </a>
+    </div>
+  </div>
+
+  {% if overview %}
+  {# ── Cards de totais ─────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    <div class="col-sm-4">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1" style="font-size:11px;">Planejado</div>
+        <div class="fs-4 fw-bold text-primary">R$ {{ total_planned | money }}</div>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1" style="font-size:11px;">Realizado</div>
+        <div class="fs-4 fw-bold {{ 'text-danger' if total_realized > total_planned else 'text-success' }}">
+          R$ {{ total_realized | money }}
+        </div>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="card border-0 shadow-sm p-3 h-100">
+        <div class="text-muted small fw-semibold text-uppercase mb-1" style="font-size:11px;">Disponível</div>
+        {% set remaining = total_planned - total_realized %}
+        <div class="fs-4 fw-bold {{ 'text-danger' if remaining < 0 else 'text-success' }}">
+          {% if remaining < 0 %}-R$ {{ remaining | abs | money }}{% else %}R$ {{ remaining | money }}{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Tabela de orçamentos ─────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-4">Categoria</th>
+              <th class="text-end" style="width:140px;">Planejado</th>
+              <th class="text-end" style="width:140px;">Realizado</th>
+              <th style="width:200px;">Progresso</th>
+              <th class="text-center" style="width:90px;">Status</th>
+              <th style="width:80px;"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in overview %}
+            {% set b = item.budget %}
+            {% set color = 'success' if item.health == 'healthy' else 'warning' if item.health == 'warning' else 'danger' %}
+            {% set label = 'Saudável' if item.health == 'healthy' else 'Atenção' if item.health == 'warning' else 'Excedido' %}
+            <tr>
+              <td class="px-4">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="rounded-circle d-inline-block"
+                        style="width:10px;height:10px;background:{{ b.category.color if b.category else '#6c757d' }};flex-shrink:0;"></span>
+                  <span class="fw-medium">{{ b.category.name if b.category else '—' }}</span>
+                </div>
+              </td>
+              <td class="text-end text-muted">R$ {{ b.planned_amount_cents | money }}</td>
+              <td class="text-end fw-semibold {{ 'text-danger' if item.realized_cents > b.planned_amount_cents else '' }}">
+                R$ {{ item.realized_cents | money }}
+              </td>
+              <td class="pe-4">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="progress flex-grow-1" style="height:8px;">
+                    <div class="progress-bar bg-{{ color }}"
+                         style="width:{{ [item.pct, 100] | min }}%;"
+                         role="progressbar"></div>
+                  </div>
+                  <small class="text-muted text-nowrap" style="min-width:38px;">{{ item.pct }}%</small>
+                </div>
+              </td>
+              <td class="text-center">
+                <span class="badge bg-{{ color }}-subtle text-{{ color }}-emphasis" style="font-size:11px;">
+                  {{ label }}
+                </span>
+              </td>
+              <td class="text-end pe-3">
+                <div class="d-flex gap-1 justify-content-end">
+                  <a href="{{ url_for('budgets.edit', budget_id=b.id) }}"
+                     class="btn btn-sm btn-outline-secondary py-0 px-2" title="Editar">
+                    <i class="bi bi-pencil" style="font-size:12px;"></i>
+                  </a>
+                  <form method="POST" action="{{ url_for('budgets.delete', budget_id=b.id) }}"
+                        onsubmit="return confirm('Remover este orçamento?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Remover">
+                      <i class="bi bi-trash" style="font-size:12px;"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  {# ── Estado vazio ─────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+      <i class="bi bi-bullseye text-muted mb-3" style="font-size:3rem;"></i>
+      <h6 class="fw-bold mb-2">Nenhum orçamento em {{ PT_MONTHS[month - 1] }}/{{ year }}</h6>
+      <p class="text-muted small mb-3 text-center" style="max-width:320px;">
+        Crie orçamentos mensais por categoria para controlar seus gastos.
+      </p>
+      <a href="{{ url_for('budgets.new', month=month, year=year) }}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Criar primeiro orçamento
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

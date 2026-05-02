@@ -1,0 +1,103 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Contas{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Contas</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+
+    <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-2">
+        <div>
+            <h4 class="fw-bold mb-1">Contas financeiras</h4>
+            <p class="text-muted mb-0 small">Gerencie as contas da família <strong>{{ current_family.name }}</strong>.</p>
+        </div>
+        <a href="{{ url_for('accounts.new') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle me-1"></i>Nova conta
+        </a>
+    </div>
+
+    {# Total #}
+    <div class="card border-0 shadow-sm mb-4" style="background: linear-gradient(135deg,#198754,#0d6efd);">
+        <div class="card-body py-3 px-4 text-white">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small opacity-75 mb-1">Saldo total — todas as contas</div>
+                    <div class="fs-3 fw-bold">
+                        {{ current_family.currency }} {{ total_cents | money }}
+                    </div>
+                </div>
+                <i class="bi bi-wallet2 opacity-50" style="font-size:2.5rem;"></i>
+            </div>
+        </div>
+    </div>
+
+    {% if accounts %}
+    <div class="row g-3">
+        {% for account in accounts %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0"
+                             style="background-color:{{ account.color }}22; width:44px; height:44px;">
+                            <i class="bi {{ account.icon }}" style="color:{{ account.color }}; font-size:1.3rem;"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="fw-semibold text-truncate">{{ account.name }}</div>
+                            <div class="text-muted small">
+                                {{ account.type | replace('CHECKING','Conta Corrente') | replace('SAVINGS','Poupança') | replace('CASH','Dinheiro') | replace('WALLET','Carteira') | replace('INVESTMENT','Investimento') | replace('CREDIT_CARD','Cartão') }}
+                                {% if account.institution %}
+                                    · {{ account.institution }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if account.visibility == 'PRIVATE' %}
+                        <span class="badge bg-secondary ms-auto" title="Conta privada">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <div class="text-muted" style="font-size:11px;">SALDO ATUAL</div>
+                        <div class="fs-5 fw-bold {{ 'text-danger' if account.current_balance_cents < 0 else 'text-success' }}">
+                            {{ account.currency }} {{ account.current_balance_cents | money }}
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{{ url_for('accounts.edit', account_id=account.id) }}"
+                           class="btn btn-outline-secondary btn-sm flex-grow-1">
+                            <i class="bi bi-pencil me-1"></i>Editar
+                        </a>
+                        <form method="POST"
+                              action="{{ url_for('accounts.archive', account_id=account.id) }}"
+                              onsubmit="return confirm('Arquivar a conta {{ account.name }}?')">
+                            {{ csrf_token() | safe }}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Arquivar">
+                                <i class="bi bi-archive"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm">
+        <div class="card-body py-5 text-center">
+            <i class="bi bi-bank text-muted mb-3" style="font-size:3rem;"></i>
+            <h6 class="fw-bold mb-2">Nenhuma conta cadastrada</h6>
+            <p class="text-muted small mb-3">Adicione suas contas bancárias, carteiras e dinheiro em espécie.</p>
+            <a href="{{ url_for('accounts.new') }}" class="btn btn-success">
+                <i class="bi bi-plus-circle me-1"></i>Criar primeira conta
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

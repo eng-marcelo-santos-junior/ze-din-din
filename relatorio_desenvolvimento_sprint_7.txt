@@ -1,0 +1,220 @@
+================================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 7
+Zé Din Din — Gestão Financeira Familiar
+Data: 2026-05-01
+================================================================
+
+1. RESUMO DO QUE FOI CRIADO
+================================================================
+
+Sprint 7 implementou três módulos financeiros completos:
+
+ORÇAMENTOS (Budgets)
+--------------------
+- Orçamento mensal por categoria com comparação planejado × realizado
+- Upsert automático: criar orçamento para mesma (família, categoria, mês, ano)
+  atualiza em vez de duplicar
+- Classificação de saúde: healthy (<80%), warning (80-99%), exceeded (≥100%)
+- Copiar orçamentos do mês anterior (ignora categorias já existentes no mês atual)
+- Listagem com filtro de mês/ano e 3 cards de totais (planejado, realizado, saldo)
+- Formulário de criação e edição
+
+CONTAS A PAGAR / RECEBER (Bills)
+---------------------------------
+- Suporte a dois tipos: PAYABLE (a pagar) e RECEIVABLE (a receber)
+- Status: PENDING, PAID, RECEIVED, OVERDUE, CANCELED
+- Propriedade computed is_overdue: detecta vencimento sem job em background
+- Propriedade computed days_until_due: dias até o vencimento
+- Pagamento via modal: cria transação EXPENSE (PAYABLE) ou INCOME (RECEIVABLE)
+  e atualiza saldo da conta automaticamente
+- Abas na listagem: Pendentes | Histórico
+- Cancelamento de conta
+
+METAS FINANCEIRAS (Goals)
+--------------------------
+- Meta com valor-alvo e data-alvo opcional
+- Aportes acumulativos com validação (zero ignorado)
+- Conclusão automática ao atingir/exceder o valor-alvo
+- Percentual de progresso e barra visual Bootstrap
+- Estimativa de aporte mensal necessário (remaining / meses até target_date)
+- Aporte via modal com Bootstrap
+- Cancelamento de meta
+
+2. ARQUIVOS CRIADOS
+================================================================
+
+Modelos:
+  app/models/budget.py        — Budget com UniqueConstraint e índices
+  app/models/bill.py          — Bill com BillType/BillStatus enums + computed props
+  app/models/goal.py          — Goal com GoalStatus enum + computed props
+  app/models/__init__.py      — (atualizado) importa novos modelos
+
+Blueprints (módulos):
+  app/budgets/__init__.py
+  app/budgets/services.py     — create, update, delete, get, overview, copy_previous
+  app/budgets/forms.py        — BudgetForm com MONTH_CHOICES
+  app/budgets/routes.py       — index, new, edit, delete, copy_previous
+
+  app/bills/__init__.py
+  app/bills/services.py       — create, update, get, get_bills, pay_bill, cancel_bill
+  app/bills/forms.py          — BillForm + PayBillForm
+  app/bills/routes.py         — index, new, edit, pay, cancel
+
+  app/goals/__init__.py
+  app/goals/services.py       — create, update, get, get_goals, contribute, cancel
+  app/goals/forms.py          — GoalForm + ContributeForm
+  app/goals/routes.py         — index, new, edit, contribute, cancel
+
+Templates:
+  app/templates/budgets/index.html
+  app/templates/budgets/form.html
+  app/templates/bills/index.html
+  app/templates/bills/form.html
+  app/templates/goals/index.html
+  app/templates/goals/form.html
+
+Arquivos atualizados:
+  app/__init__.py             — registra budgets_bp, bills_bp, goals_bp
+  app/templates/layout_private.html — links ativos no sidebar
+
+Testes:
+  tests/test_budgets.py       — 19 testes
+  tests/test_bills.py         — 20 testes
+  tests/test_goals.py         — 20 testes
+
+Migration:
+  migrations/versions/57ab60921cc8_sprint_7_budgets_bills_goals.py
+
+3. ESTRUTURA DE PASTAS (SPRINT 7)
+================================================================
+
+ze-din-din/
+├── app/
+│   ├── budgets/
+│   │   ├── __init__.py
+│   │   ├── forms.py
+│   │   ├── routes.py
+│   │   └── services.py
+│   ├── bills/
+│   │   ├── __init__.py
+│   │   ├── forms.py
+│   │   ├── routes.py
+│   │   └── services.py
+│   ├── goals/
+│   │   ├── __init__.py
+│   │   ├── forms.py
+│   │   ├── routes.py
+│   │   └── services.py
+│   ├── models/
+│   │   ├── budget.py  (novo)
+│   │   ├── bill.py    (novo)
+│   │   └── goal.py    (novo)
+│   └── templates/
+│       ├── budgets/
+│       │   ├── index.html
+│       │   └── form.html
+│       ├── bills/
+│       │   ├── index.html
+│       │   └── form.html
+│       └── goals/
+│           ├── index.html
+│           └── form.html
+├── tests/
+│   ├── test_budgets.py  (novo)
+│   ├── test_bills.py    (novo)
+│   └── test_goals.py    (novo)
+└── migrations/versions/
+    └── 57ab60921cc8_sprint_7_budgets_bills_goals.py
+
+4. PRINCIPAIS COMANDOS PARA RODAR
+================================================================
+
+# Ambiente local (sem Docker):
+.venv/Scripts/python.exe run.py
+
+# Com Docker:
+docker compose up -d
+
+# Acesso:
+http://localhost:5000
+
+5. COMO EXECUTAR MIGRATIONS
+================================================================
+
+# Gerar nova migration (já gerada neste sprint):
+.venv/Scripts/python.exe -m flask db migrate -m "descricao"
+
+# Aplicar migrations pendentes:
+.venv/Scripts/python.exe -m flask db upgrade
+
+# Com Docker:
+docker compose exec web flask db upgrade
+
+6. COMO RODAR TESTES
+================================================================
+
+# Somente Sprint 7:
+.venv/Scripts/python.exe -m pytest tests/test_budgets.py tests/test_bills.py tests/test_goals.py -v
+
+# Suite completa:
+.venv/Scripts/python.exe -m pytest -q
+
+# Resultado Sprint 7: 59/59 passed
+# Resultado suite completa: 222/222 passed
+
+7. RESULTADOS DOS TESTES
+================================================================
+
+test_budgets.py — 19 testes
+  TestCriarOrcamento   (4): cria, upsert, atualiza, deleta
+  TestOverview         (6): vazio, sem despesas, saudável, atenção, excedido, cancelada
+  TestCopiarMesAnterior(4): copia, não duplica, vazio, janeiro←dezembro
+  TestIsolamento       (2): outra família bloqueada, overview isolada
+  TestRotasBudgets     (3): exige login, retorna 200, cria via POST
+
+test_bills.py — 20 testes
+  TestCriarConta       (3): payable, receivable, atualiza
+  TestPropriedades     (3): is_overdue vencida, futura, days_until_due
+  TestPagarConta       (5): cria tx EXPENSE, altera status PAID, cria tx INCOME,
+                            altera status RECEIVED, usa data fornecida
+  TestCancelarConta    (1): cancela
+  TestIsolamento       (2): outra família bloqueada, listagem isolada
+  TestRotasBills       (4): exige login, retorna 200, cria via POST, 404 outra família
+
+test_goals.py — 20 testes
+  TestCriarMeta        (3): cria, sem data, atualiza
+  TestProgresso        (6): zero, 50%, 100%, aumenta valor, zero ignorado, múltiplos
+  TestConclusao        (3): conclui ao atingir, ao exceder, não antes
+  TestCancelar         (1): cancela
+  TestAporteMensal     (3): sem data retorna 0, calcula, sem restante retorna 0
+  TestIsolamento       (2): outra família bloqueada, listagem isolada
+  TestRotasGoals       (4): exige login, retorna 200, cria via POST, 404 outra família
+
+8. PRÓXIMOS PASSOS RECOMENDADOS
+================================================================
+
+Sprint 8 — Relatórios:
+  - Relatório de receitas × despesas por mês (gráfico de barras)
+  - Relatório de despesas por categoria (gráfico de rosca)
+  - Relatório de fluxo de caixa mensal
+  - Relatório de patrimônio líquido (saldo total das contas)
+  - Filtros por período, conta e categoria
+  - Exportação CSV das transações
+
+Sprint 9 — Qualidade e segurança:
+  - Paginação nas listas de transações e bills
+  - Melhorias de permissão por role (ADMIN x MEMBER x RESTRICTED)
+  - Validação de CSRF em todas as ações destrutivas
+  - Cobertura de testes ≥ 80%
+  - Lint com ruff + black + isort
+
+Sprint 10 — Refinamento visual e entrega:
+  - Cartões de crédito (modelo CreditCard + Invoice)
+  - Importação CSV de transações
+  - Notificações de bills vencidas no dashboard
+  - Revisão de responsividade mobile
+  - Documentação final (docs/)
+
+================================================================
+FIM DO RELATÓRIO — SPRINT 7
+================================================================

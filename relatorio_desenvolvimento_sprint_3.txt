@@ -1,0 +1,164 @@
+==================================================
+RELATÓRIO DE DESENVOLVIMENTO — SPRINT 3
+Zé Din Din — Gestão Financeira Doméstica
+==================================================
+
+Data: 2026-04-30
+Sprint: 3 — Banco de Dados e Família
+Status: Concluída
+
+==================================================
+1. RESUMO DO QUE FOI CRIADO
+==================================================
+
+Esta sprint implementou o módulo de família, criando a base de
+autorização por family_id que será usada por todos os módulos
+futuros (contas, transações, categorias, etc.).
+
+Principais entregas:
+
+1.1 Models atualizados
+  - User: adicionado relacionamento family_memberships
+  - app/models/__init__.py: exporta Family, FamilyMember e enums
+
+1.2 Blueprint families (app/families/)
+  - __init__.py  — define families_bp
+  - forms.py     — FamilyForm (name + currency)
+  - services.py  — create_family, get_members, update_family, get_user_membership
+  - routes.py    — GET/POST /families/new, GET /families/settings, GET /families/members
+
+1.3 Utilitários (app/utils/)
+  - families.py    — get_current_family(user), user_has_access_to_family(uid, fid)
+  - decorators.py  — @family_required, @role_required(*roles)
+
+1.4 Fluxo pós-login
+  - Registro → redireciona para /families/new (novo usuário sem família)
+  - Login → se sem família, redireciona para /families/new
+  - Dashboard → protegido por @family_required; redireciona se sem família
+
+1.5 Templates
+  - templates/families/new.html      — onboarding de criação de família
+  - templates/families/settings.html — edição de nome e moeda
+  - templates/families/members.html  — listagem de membros com roles/status
+
+1.6 Layout atualizado
+  - layout_private.html: sidebar exibe nome da família ativa
+  - sidebar: link "Família" ativo e funcional
+
+1.7 Contexto global
+  - app/__init__.py: context_processor injeta current_family em todos os templates
+
+1.8 Testes
+  - tests/test_families.py — 18 testes cobrindo:
+    - criação de família
+    - papel OWNER para o criador
+    - persistência no banco
+    - get_current_family / user_has_access_to_family
+    - proteção de rotas sem família
+    - isolamento entre famílias
+  - tests/test_auth.py — atualizado (register agora redireciona para /families/new)
+
+==================================================
+2. ESTRUTURA DE PASTAS RELEVANTE
+==================================================
+
+app/
+  families/
+    __init__.py
+    forms.py
+    routes.py
+    services.py
+  utils/
+    __init__.py
+    families.py
+    decorators.py
+  models/
+    user.py          ← family_memberships adicionado
+    family.py        ← sem alterações (já estava correto)
+    __init__.py      ← exporta Family, FamilyMember, enums
+  templates/
+    families/
+      new.html
+      settings.html
+      members.html
+    layout_private.html  ← família exibida na sidebar
+    dashboard/
+      index.html          ← mostra nome da família
+
+tests/
+  test_families.py   ← novo
+  test_auth.py       ← atualizado
+
+==================================================
+3. COMO EXECUTAR MIGRATIONS
+==================================================
+
+A migration das tabelas families e family_members ainda não
+existe. Execute após configurar o banco:
+
+  # Gerar migration
+  flask db migrate -m "adiciona tabelas family e family_members"
+
+  # Aplicar ao banco
+  flask db upgrade
+
+Ou com Docker Compose:
+
+  docker compose exec web flask db migrate -m "adiciona tabelas family"
+  docker compose exec web flask db upgrade
+
+==================================================
+4. COMO RODAR OS TESTES
+==================================================
+
+Certifique-se de que o banco de teste (zedindin_test) existe:
+
+  createdb zedindin_test   # ou via Docker
+
+  # Rodar todos os testes
+  pytest
+
+  # Apenas Sprint 3
+  pytest tests/test_families.py -v
+
+  # Todos com cobertura
+  pytest --tb=short -v
+
+==================================================
+5. PRINCIPAIS COMANDOS PARA RODAR
+==================================================
+
+# Desenvolvimento local
+python run.py
+
+# Com Docker Compose
+docker compose up --build
+
+# Migrations
+flask db migrate -m "mensagem"
+flask db upgrade
+flask db downgrade
+
+# Testes
+pytest
+pytest tests/test_families.py -v
+pytest tests/test_auth.py -v
+
+==================================================
+6. PRÓXIMOS PASSOS RECOMENDADOS (SPRINT 4)
+==================================================
+
+Sprint 4 — Contas Financeiras e Categorias:
+
+1. Criar modelo Account (conta corrente, poupança, dinheiro, etc.)
+2. Criar modelo Category (receitas e despesas com cores/ícones)
+3. Criar blueprint accounts (CRUD + extrato)
+4. Criar blueprint categories (CRUD + subcategorias)
+5. Popular categorias padrão ao criar família
+6. Usar family_id obrigatório em todas as consultas
+7. Aplicar @family_required nos novos blueprints
+8. Criar testes de isolamento entre famílias
+9. Atualizar sidebar com links Contas e Categorias ativos
+
+A base de autorização por family_id criada nesta sprint
+é o alicerce de todos os módulos de dados financeiros.

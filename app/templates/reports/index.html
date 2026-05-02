@@ -1,0 +1,93 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Relatórios{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Relatórios</li>
+{% endblock %}
+
+{% block content %}
+<div class="pt-4">
+    <h4 class="fw-bold mb-1">Relatórios</h4>
+    <p class="text-muted mb-4">Análises financeiras da sua família.</p>
+
+    <div class="row g-4">
+
+        <div class="col-sm-6 col-lg-4">
+            <a href="{{ url_for('reports.cash_flow') }}" class="card card-body text-decoration-none border-0 shadow-sm h-100 report-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary">
+                        <i class="bi bi-bar-chart-line fs-4"></i>
+                    </div>
+                    <h6 class="mb-0 fw-semibold text-dark">Fluxo de Caixa</h6>
+                </div>
+                <p class="text-muted small mb-0">Receitas, despesas e resultado líquido mês a mês.</p>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <a href="{{ url_for('reports.categories') }}" class="card card-body text-decoration-none border-0 shadow-sm h-100 report-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="icon-circle bg-warning bg-opacity-10 text-warning">
+                        <i class="bi bi-pie-chart fs-4"></i>
+                    </div>
+                    <h6 class="mb-0 fw-semibold text-dark">Despesas por Categoria</h6>
+                </div>
+                <p class="text-muted small mb-0">Quanto cada categoria representa no total de gastos.</p>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <a href="{{ url_for('reports.budget') }}" class="card card-body text-decoration-none border-0 shadow-sm h-100 report-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="icon-circle bg-success bg-opacity-10 text-success">
+                        <i class="bi bi-bullseye fs-4"></i>
+                    </div>
+                    <h6 class="mb-0 fw-semibold text-dark">Orçamento vs. Realizado</h6>
+                </div>
+                <p class="text-muted small mb-0">Compare o que foi planejado com o que foi gasto.</p>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <a href="{{ url_for('reports.biggest_expenses') }}" class="card card-body text-decoration-none border-0 shadow-sm h-100 report-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="icon-circle bg-danger bg-opacity-10 text-danger">
+                        <i class="bi bi-sort-down fs-4"></i>
+                    </div>
+                    <h6 class="mb-0 fw-semibold text-dark">Maiores Despesas</h6>
+                </div>
+                <p class="text-muted small mb-0">As transações de maior valor em ordem decrescente.</p>
+            </a>
+        </div>
+
+        <div class="col-sm-6 col-lg-4">
+            <a href="{{ url_for('reports.net_worth') }}" class="card card-body text-decoration-none border-0 shadow-sm h-100 report-card">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="icon-circle bg-info bg-opacity-10 text-info">
+                        <i class="bi bi-graph-up-arrow fs-4"></i>
+                    </div>
+                    <h6 class="mb-0 fw-semibold text-dark">Patrimônio Líquido</h6>
+                </div>
+                <p class="text-muted small mb-0">Saldo consolidado de todas as contas da família.</p>
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.report-card {
+    transition: transform .15s, box-shadow .15s;
+}
+.report-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.1) !important;
+}
+.icon-circle {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}

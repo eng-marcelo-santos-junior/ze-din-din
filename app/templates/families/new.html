@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Criar família — Zé Din Din{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+
+            <div class="text-center mb-5">
+                <div class="mb-3">
+                    <span class="display-4">🏠</span>
+                </div>
+                <h2 class="fw-bold">Crie a sua família</h2>
+                <p class="text-muted">
+                    O Zé Din Din organiza as finanças em grupos familiares.
+                    Dê um nome à sua família e comece a controlar seu dinheiro.
+                </p>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('families.new') }}" novalidate>
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-4">
+                            {{ form.name.label(class='form-label fw-semibold') }}
+                            {{ form.name(class='form-control form-control-lg' + (' is-invalid' if form.name.errors else '')) }}
+                            {% for error in form.name.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Pode ser o sobrenome da família ou um apelido.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form.currency.label(class='form-label fw-semibold') }}
+                            {{ form.currency(class='form-select' + (' is-invalid' if form.currency.errors else '')) }}
+                            {% for error in form.currency.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class='btn btn-success btn-lg') }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <p class="text-center text-muted small mt-4">
+                Você será o administrador desta família e poderá convidar outros membros depois.
+            </p>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

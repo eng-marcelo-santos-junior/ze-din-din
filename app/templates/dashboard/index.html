@@ -7,120 +7,463 @@
 {% endblock %}
 
 {% block content %}
-<div class="pt-4">
+{% set PT_MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] %}
+{% set LEGEND_COLORS = ['#0d6efd','#198754','#dc3545','#ffc107','#0dcaf0',
+                        '#6f42c1','#fd7e14','#20c997','#d63384','#6c757d',
+                        '#0b5ed7','#157347','#b02a37','#ffca2c','#31d2f2'] %}
+<div class="py-4">
 
-    {# ── Cabeçalho ──────────────────────────────────────────────────────── #}
-    <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-2">
-        <div>
-            <h4 class="fw-bold mb-1">
-                Olá, {{ current_user.name.split()[0] }}!
-            </h4>
-            <p class="text-muted mb-0 small">
-                Aqui está o resumo financeiro do mês de
-                <strong>{{ now.strftime('%B de %Y') }}</strong>.
-            </p>
-        </div>
-        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-2">
-            <i class="bi bi-lightning-charge me-1"></i>Sprint 2 — Autenticação concluída
-        </span>
+  {# ── Cabeçalho + Filtros ─────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <i class="bi bi-speedometer2 text-success me-2"></i>Dashboard
+      </h4>
+      <p class="text-muted mb-0 small">
+        Família <strong>{{ family.name }}</strong> —
+        {{ PT_MONTHS[filters.month - 1] }} de {{ filters.year }}
+        {% if filters.account_id and accounts %}
+          {% for acc in accounts %}{% if acc.id == filters.account_id %} · {{ acc.name }}{% endif %}{% endfor %}
+        {% endif %}
+      </p>
     </div>
 
-    {# ── Cards de resumo ────────────────────────────────────────────────── #}
-    <div class="row g-3 mb-4">
+    <form method="get" action="{{ url_for('dashboard.index') }}"
+          class="d-flex gap-2 align-items-center flex-wrap">
+      <select name="month" class="form-select form-select-sm" style="min-width:130px;">
+        {% for i in range(1, 13) %}
+        <option value="{{ i }}" {{ 'selected' if filters.month == i }}>
+          {{ PT_MONTHS[i-1] }}
+        </option>
+        {% endfor %}
+      </select>
+      <select name="year" class="form-select form-select-sm" style="min-width:90px;">
+        {% for y in range(now.year - 2, now.year + 2) %}
+        <option value="{{ y }}" {{ 'selected' if filters.year == y }}>{{ y }}</option>
+        {% endfor %}
+      </select>
+      {% if accounts %}
+      <select name="account_id" class="form-select form-select-sm" style="min-width:160px;">
+        <option value="">Todas as contas</option>
+        {% for acc in accounts %}
+        <option value="{{ acc.id }}" {{ 'selected' if filters.account_id == acc.id }}>
+          {{ acc.name }}
+        </option>
+        {% endfor %}
+      </select>
+      {% endif %}
+      <button type="submit" class="btn btn-success btn-sm px-3">
+        <i class="bi bi-funnel me-1"></i>Filtrar
+      </button>
+      {% if filters.account_id or filters.month != now.month or filters.year != now.year %}
+      <a href="{{ url_for('dashboard.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-x-circle me-1"></i>Limpar
+      </a>
+      {% endif %}
+    </form>
+  </div>
 
-        <div class="col-sm-6 col-xl-3">
-            <div class="card stat-card income h-100 p-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Receitas do mês</span>
-                    <div class="bg-success-subtle rounded-2 p-2">
-                        <i class="bi bi-arrow-down-circle text-success fs-5"></i>
-                    </div>
-                </div>
-                <div class="fs-4 fw-bold text-income">R$ 0,00</div>
-                <small class="text-muted">Nenhuma receita registrada</small>
-            </div>
+  {# ── Alertas ─────────────────────────────────────────────────────────────── #}
+  {% if not accounts %}
+  <div class="alert alert-warning alert-dismissible fade show d-flex gap-2 align-items-start" role="alert">
+    <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+    <div>
+      Você ainda não tem contas cadastradas.
+      <a href="{{ url_for('accounts.new') }}" class="alert-link fw-semibold">Cadastre uma conta</a>
+      para começar a registrar transações.
+    </div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
+  {% elif tx_count == 0 %}
+  <div class="alert alert-info alert-dismissible fade show d-flex gap-2 align-items-start" role="alert">
+    <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
+    <div>
+      Nenhuma transação em {{ PT_MONTHS[filters.month - 1] }}/{{ filters.year }}.
+      <a href="{{ url_for('transactions.new') }}" class="alert-link fw-semibold">Adicione uma transação</a>.
+    </div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
+  {% endif %}
+
+  {% if month_result < 0 %}
+  <div class="alert alert-danger alert-dismissible fade show d-flex gap-2 align-items-start" role="alert">
+    <i class="bi bi-exclamation-circle-fill flex-shrink-0 mt-1"></i>
+    <div>
+      Resultado do mês <strong>negativo</strong>: as despesas superaram as receitas em
+      <strong>R$ {{ month_result | abs | money }}</strong>.
+    </div>
+    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+  </div>
+  {% endif %}
+
+  {% if top_category and month_expenses > 0 %}
+    {% set top_pct = (top_category.total_cents / month_expenses * 100) | round | int %}
+    {% if top_pct > 50 %}
+    <div class="alert alert-warning alert-dismissible fade show d-flex gap-2 align-items-start" role="alert">
+      <i class="bi bi-pie-chart-fill flex-shrink-0 mt-1"></i>
+      <div>
+        A categoria <strong>{{ top_category.name }}</strong> representa
+        <strong>{{ top_pct }}%</strong> das despesas do mês. Fique atento!
+      </div>
+      <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+    </div>
+    {% endif %}
+  {% endif %}
+
+  {# ── Cards de Resumo ─────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Saldo Total</span>
+          <div class="bg-primary-subtle rounded-2 p-2">
+            <i class="bi bi-wallet2 text-primary fs-5"></i>
+          </div>
         </div>
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card stat-card expense h-100 p-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Despesas do mês</span>
-                    <div class="bg-danger-subtle rounded-2 p-2">
-                        <i class="bi bi-arrow-up-circle text-danger fs-5"></i>
-                    </div>
-                </div>
-                <div class="fs-4 fw-bold text-expense">R$ 0,00</div>
-                <small class="text-muted">Nenhuma despesa registrada</small>
-            </div>
+        <div class="fs-3 fw-bold {{ 'text-success' if total_balance >= 0 else 'text-danger' }}">
+          {% if total_balance < 0 %}-R$ {{ total_balance | abs | money }}
+          {% else %}R$ {{ total_balance | money }}
+          {% endif %}
         </div>
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card stat-card balance h-100 p-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Saldo total</span>
-                    <div class="bg-primary-subtle rounded-2 p-2">
-                        <i class="bi bi-wallet2 text-primary fs-5"></i>
-                    </div>
-                </div>
-                <div class="fs-4 fw-bold">R$ 0,00</div>
-                <small class="text-muted">Sem contas cadastradas</small>
-            </div>
-        </div>
-
-        <div class="col-sm-6 col-xl-3">
-            <div class="card stat-card result h-100 p-3">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Resultado do mês</span>
-                    <div class="bg-warning-subtle rounded-2 p-2">
-                        <i class="bi bi-graph-up text-warning fs-5"></i>
-                    </div>
-                </div>
-                <div class="fs-4 fw-bold">R$ 0,00</div>
-                <small class="text-muted">Receitas menos despesas</small>
-            </div>
-        </div>
-
+        <small class="text-muted mt-1">
+          {{ accounts | length }} conta{{ 's' if accounts | length != 1 }} ativa{{ 's' if accounts | length != 1 }}
+        </small>
+      </div>
     </div>
 
-    {# ── Próximos passos ─────────────────────────────────────────────────── #}
-    <div class="row g-3">
-
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body p-4 text-center d-flex flex-column align-items-center justify-content-center"
-                     style="min-height: 260px;">
-                    <i class="bi bi-bar-chart-line text-muted mb-3" style="font-size: 3rem;"></i>
-                    <h6 class="fw-bold mb-2">Nenhuma transação ainda</h6>
-                    <p class="text-muted small mb-3" style="max-width: 320px;">
-                        Cadastre suas contas e comece a lançar receitas e despesas para ver os gráficos aqui.
-                    </p>
-                    <div class="d-flex gap-2 flex-wrap justify-content-center">
-                        <a href="#" class="btn btn-success btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i>Adicionar conta
-                        </a>
-                        <a href="#" class="btn btn-outline-secondary btn-sm">
-                            <i class="bi bi-arrow-left-right me-1"></i>Nova transação
-                        </a>
-                    </div>
-                </div>
-            </div>
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Receitas do Mês</span>
+          <div class="bg-success-subtle rounded-2 p-2">
+            <i class="bi bi-arrow-down-circle text-success fs-5"></i>
+          </div>
         </div>
-
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h6 class="fw-bold mb-0">
-                        <i class="bi bi-calendar2-check text-danger me-2"></i>Contas a vencer
-                    </h6>
-                </div>
-                <div class="card-body p-4 text-center d-flex flex-column align-items-center justify-content-center">
-                    <i class="bi bi-calendar-x text-muted mb-2" style="font-size: 2rem;"></i>
-                    <p class="text-muted small mb-0">Nenhuma conta próxima do vencimento</p>
-                </div>
-            </div>
-        </div>
-
+        <div class="fs-3 fw-bold text-success">R$ {{ month_income | money }}</div>
+        <small class="text-muted mt-1">Entradas em {{ PT_MONTHS[filters.month - 1] }}</small>
+      </div>
     </div>
+
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Despesas do Mês</span>
+          <div class="bg-danger-subtle rounded-2 p-2">
+            <i class="bi bi-arrow-up-circle text-danger fs-5"></i>
+          </div>
+        </div>
+        <div class="fs-3 fw-bold text-danger">R$ {{ month_expenses | money }}</div>
+        <small class="text-muted mt-1">Saídas em {{ PT_MONTHS[filters.month - 1] }}</small>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Resultado do Mês</span>
+          <div class="{{ 'bg-success-subtle' if month_result >= 0 else 'bg-danger-subtle' }} rounded-2 p-2">
+            <i class="bi bi-{{ 'graph-up' if month_result >= 0 else 'graph-down' }}
+               {{ 'text-success' if month_result >= 0 else 'text-danger' }} fs-5"></i>
+          </div>
+        </div>
+        <div class="fs-3 fw-bold {{ 'text-success' if month_result >= 0 else 'text-danger' }}">
+          {% if month_result > 0 %}+R$ {{ month_result | money }}
+          {% elif month_result < 0 %}-R$ {{ month_result | abs | money }}
+          {% else %}R$ 0,00
+          {% endif %}
+        </div>
+        <small class="text-muted mt-1">Receitas menos despesas</small>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Transações</span>
+          <div class="bg-info-subtle rounded-2 p-2">
+            <i class="bi bi-list-check text-info fs-5"></i>
+          </div>
+        </div>
+        <div class="fs-3 fw-bold">{{ tx_count }}</div>
+        <small class="mt-1">
+          <a href="{{ url_for('transactions.index') }}" class="text-decoration-none text-muted">
+            Ver todas →
+          </a>
+        </small>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100 p-3">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+          <span class="text-muted fw-semibold text-uppercase" style="font-size:11px;">Maior Despesa</span>
+          <div class="bg-warning-subtle rounded-2 p-2">
+            <i class="bi bi-tag text-warning fs-5"></i>
+          </div>
+        </div>
+        {% if top_category %}
+        <div class="fs-5 fw-bold text-truncate">{{ top_category.name }}</div>
+        <small class="text-muted mt-1">
+          R$ {{ top_category.total_cents | money }}
+          {% if month_expenses > 0 %}
+            · {{ (top_category.total_cents / month_expenses * 100) | round | int }}% do total
+          {% endif %}
+        </small>
+        {% else %}
+        <div class="fs-5 fw-bold text-muted">—</div>
+        <small class="text-muted mt-1">Nenhuma despesa registrada</small>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Gráficos ─────────────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+
+    <div class="col-lg-5">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-pie-chart text-danger me-2"></i>Despesas por Categoria
+          </h6>
+        </div>
+        <div class="card-body p-3">
+          {% if expenses_by_category %}
+          <div class="d-flex justify-content-center mb-3" style="max-height:220px;">
+            <canvas id="expByCatChart"></canvas>
+          </div>
+          <div style="max-height:200px; overflow-y:auto;">
+            {% for item in expenses_by_category %}
+            <div class="d-flex align-items-center justify-content-between py-1
+                        {{ 'border-bottom border-light' if not loop.last }}">
+              <div class="d-flex align-items-center gap-2">
+                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;
+                             flex-shrink:0;background:{{ LEGEND_COLORS[loop.index0 % (LEGEND_COLORS|length)] }};"></span>
+                <small class="text-truncate" style="max-width:140px;">{{ item.name }}</small>
+              </div>
+              <small class="fw-semibold ms-2 text-nowrap">R$ {{ item.total_cents | money }}</small>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="d-flex flex-column align-items-center justify-content-center py-5">
+            <i class="bi bi-pie-chart text-muted mb-2" style="font-size:2.5rem;"></i>
+            <p class="text-muted small mb-0">Nenhuma despesa no período</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-7">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-bar-chart-line text-primary me-2"></i>Receitas vs. Despesas — Últimos 6 Meses
+          </h6>
+        </div>
+        <div class="card-body p-3" style="position:relative; height:320px;">
+          <canvas id="incomeVsExpChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  {# ── Últimas Transações ───────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom py-3 d-flex align-items-center justify-content-between">
+      <h6 class="fw-bold mb-0">
+        <i class="bi bi-clock-history text-secondary me-2"></i>Últimas Transações
+      </h6>
+      <a href="{{ url_for('transactions.index') }}" class="btn btn-outline-secondary btn-sm">
+        Ver todas
+      </a>
+    </div>
+    <div class="card-body p-0">
+      {% if recent_transactions %}
+      {% set STATUS_BADGE = {
+        'PAID':     ('success',   'Pago'),
+        'RECEIVED': ('success',   'Recebido'),
+        'PENDING':  ('warning',   'Pendente'),
+        'CANCELED': ('secondary', 'Cancelado'),
+      } %}
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-3" style="width:110px;">Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th class="text-end" style="width:140px;">Valor</th>
+              <th class="text-center" style="width:110px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for tx in recent_transactions %}
+            <tr>
+              <td class="px-3 text-muted small">
+                {{ tx.transaction_date.strftime('%d/%m/%Y') }}
+              </td>
+              <td>
+                <span class="fw-medium">{{ tx.description }}</span>
+                {% if tx.is_transfer %}
+                <span class="badge bg-info-subtle text-info-emphasis ms-1" style="font-size:10px;">
+                  <i class="bi bi-arrow-left-right"></i>
+                </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if tx.category %}
+                <span class="badge rounded-pill fw-normal"
+                      style="background-color:{{ tx.category.color }}22;
+                             color:{{ tx.category.color }};
+                             border:1px solid {{ tx.category.color }}55;">
+                  {{ tx.category.name }}
+                </span>
+                {% else %}
+                <span class="text-muted small">—</span>
+                {% endif %}
+              </td>
+              <td class="small text-muted">{{ tx.account.name if tx.account else '—' }}</td>
+              <td class="text-end fw-semibold">
+                {% if tx.type == 'INCOME' %}
+                <span class="text-success">+R$ {{ tx.display_amount_cents | money }}</span>
+                {% elif tx.type == 'EXPENSE' %}
+                <span class="text-danger">-R$ {{ tx.display_amount_cents | money }}</span>
+                {% else %}
+                <span class="text-muted">R$ {{ tx.display_amount_cents | money }}</span>
+                {% endif %}
+              </td>
+              <td class="text-center">
+                {% set badge = STATUS_BADGE.get(tx.status, ('secondary', tx.status)) %}
+                <span class="badge bg-{{ badge[0] }}-subtle text-{{ badge[0] }}-emphasis"
+                      style="font-size:11px;">
+                  {{ badge[1] }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="d-flex flex-column align-items-center justify-content-center py-5">
+        <i class="bi bi-inbox text-muted mb-2" style="font-size:2.5rem;"></i>
+        <p class="text-muted mb-3">Nenhuma transação registrada ainda</p>
+        <a href="{{ url_for('transactions.new') }}" class="btn btn-success btn-sm">
+          <i class="bi bi-plus-circle me-1"></i>Adicionar transação
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  'use strict';
+
+  const COLORS = [
+    '#0d6efd','#198754','#dc3545','#ffc107','#0dcaf0',
+    '#6f42c1','#fd7e14','#20c997','#d63384','#6c757d',
+    '#0b5ed7','#157347','#b02a37','#ffca2c','#31d2f2',
+  ];
+
+  function fmtBRL(val) {
+    return 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ── Doughnut: Despesas por Categoria ──────────────────────────────────────
+  const expCatData = {{ expenses_by_category | tojson }};
+  if (expCatData.length > 0) {
+    const ctx = document.getElementById('expByCatChart');
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: expCatData.map(d => d.name),
+        datasets: [{
+          data: expCatData.map(d => d.total_cents / 100),
+          backgroundColor: COLORS.slice(0, expCatData.length),
+          borderWidth: 2,
+          borderColor: '#fff',
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: '62%',
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ' ' + fmtBRL(ctx.parsed),
+            },
+          },
+        },
+      },
+    });
+  }
+
+  // ── Bar: Receitas vs. Despesas ─────────────────────────────────────────────
+  const ivData = {{ income_vs_expense | tojson }};
+  const barCtx = document.getElementById('incomeVsExpChart');
+  new Chart(barCtx, {
+    type: 'bar',
+    data: {
+      labels: ivData.map(d => d.label),
+      datasets: [
+        {
+          label: 'Receitas',
+          data: ivData.map(d => d.income_cents / 100),
+          backgroundColor: 'rgba(25, 135, 84, 0.75)',
+          borderColor: 'rgba(25, 135, 84, 1)',
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+        {
+          label: 'Despesas',
+          data: ivData.map(d => d.expense_cents / 100),
+          backgroundColor: 'rgba(220, 53, 69, 0.75)',
+          borderColor: 'rgba(220, 53, 69, 1)',
+          borderWidth: 1,
+          borderRadius: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { boxWidth: 12, padding: 16 },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ' ' + ctx.dataset.label + ': ' + fmtBRL(ctx.parsed.y),
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(0,0,0,.04)' },
+          ticks: {
+            callback: (v) => 'R$ ' + v.toLocaleString('pt-BR'),
+          },
+        },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+}());
+</script>
 {% endblock %}

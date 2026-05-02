@@ -1,0 +1,196 @@
+{% extends 'layout_private.html' %}
+
+{% block title %}Metas{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Metas</li>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+
+  {# ── Cabeçalho ────────────────────────────────────────────────────────────── #}
+  <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-2">
+    <div>
+      <h4 class="fw-bold mb-1">
+        <i class="bi bi-trophy text-warning me-2"></i>Metas Financeiras
+      </h4>
+      <p class="text-muted mb-0 small">Acompanhe suas metas e registre aportes.</p>
+    </div>
+    <a href="{{ url_for('goals.new') }}" class="btn btn-success btn-sm">
+      <i class="bi bi-plus-circle me-1"></i>Nova meta
+    </a>
+  </div>
+
+  {% set active_goals = goals | selectattr('status', 'equalto', 'ACTIVE') | list %}
+  {% set other_goals = goals | rejectattr('status', 'equalto', 'ACTIVE') | list %}
+
+  {% if active_goals %}
+  {# ── Metas ativas ─────────────────────────────────────────────────────────── #}
+  <div class="row g-3 mb-4">
+    {% for goal in active_goals %}
+    {% set pct = goal.progress_pct %}
+    {% set bar_color = 'success' if pct >= 100 else 'primary' if pct >= 60 else 'warning' if pct >= 30 else 'secondary' %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start justify-content-between mb-3">
+            <div>
+              <h6 class="fw-bold mb-0">{{ goal.name }}</h6>
+              {% if goal.target_date %}
+              <small class="text-muted">
+                <i class="bi bi-calendar3 me-1"></i>{{ goal.target_date.strftime('%d/%m/%Y') }}
+              </small>
+              {% endif %}
+            </div>
+            <span class="badge bg-primary-subtle text-primary-emphasis">Ativa</span>
+          </div>
+
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <small class="text-muted">R$ {{ goal.current_amount_cents | money }}</small>
+              <small class="fw-semibold">{{ pct }}%</small>
+            </div>
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar bg-{{ bar_color }}"
+                   style="width:{{ pct }}%;" role="progressbar"></div>
+            </div>
+            <small class="text-muted d-block mt-1">
+              Meta: R$ {{ goal.target_amount_cents | money }}
+            </small>
+          </div>
+
+          {% if goal.monthly_needed > 0 %}
+          <div class="mb-3 p-2 bg-light rounded-2 small text-muted">
+            <i class="bi bi-calculator me-1"></i>
+            Aporte mensal sugerido: <strong>R$ {{ goal.monthly_needed | money }}</strong>
+          </div>
+          {% endif %}
+
+          <div class="d-flex gap-2 flex-wrap">
+            <button type="button"
+                    class="btn btn-sm btn-success"
+                    data-bs-toggle="modal"
+                    data-bs-target="#contributeModal"
+                    data-goal-id="{{ goal.id }}"
+                    data-goal-name="{{ goal.name }}"
+                    data-remaining="R$ {{ (goal.target_amount_cents - goal.current_amount_cents) | money }}">
+              <i class="bi bi-plus-circle me-1"></i>Aportar
+            </button>
+            <a href="{{ url_for('goals.edit', goal_id=goal.id) }}"
+               class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil me-1"></i>Editar
+            </a>
+            <form method="POST" action="{{ url_for('goals.cancel', goal_id=goal.id) }}"
+                  onsubmit="return confirm('Cancelar a meta &quot;{{ goal.name }}&quot;?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-x-circle"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ── Histórico (concluídas / canceladas) ─────────────────────────────────── #}
+  {% if other_goals %}
+  <h6 class="fw-bold text-muted mb-3">Histórico</h6>
+  <div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th class="px-4">Nome</th>
+              <th>Alvo</th>
+              <th>Alcançado</th>
+              <th class="text-center">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for goal in other_goals %}
+            {% set s_color = 'success' if goal.status == 'COMPLETED' else 'secondary' %}
+            {% set s_label = 'Concluída' if goal.status == 'COMPLETED' else 'Cancelada' %}
+            <tr class="text-muted">
+              <td class="px-4">{{ goal.name }}</td>
+              <td>R$ {{ goal.target_amount_cents | money }}</td>
+              <td>R$ {{ goal.current_amount_cents | money }}</td>
+              <td class="text-center">
+                <span class="badge bg-{{ s_color }}-subtle text-{{ s_color }}-emphasis" style="font-size:11px;">
+                  {{ s_label }}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if not goals %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body d-flex flex-column align-items-center justify-content-center py-5">
+      <i class="bi bi-trophy text-muted mb-3" style="font-size:3rem;"></i>
+      <h6 class="fw-bold mb-2">Nenhuma meta cadastrada</h6>
+      <p class="text-muted small mb-3 text-center" style="max-width:320px;">
+        Crie metas como reserva de emergência, viagem ou compra de bem.
+      </p>
+      <a href="{{ url_for('goals.new') }}" class="btn btn-success btn-sm">
+        <i class="bi bi-plus-circle me-1"></i>Criar primeira meta
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+{# ── Modal: Aporte ───────────────────────────────────────────────────────── #}
+<div class="modal fade" id="contributeModal" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-plus-circle-fill text-success me-2"></i>Registrar aporte
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="contributeForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+          <p class="text-muted small mb-3">
+            Meta: <strong id="contributeGoalName"></strong><br>
+            Restante: <span id="contributeRemaining" class="fw-semibold"></span>
+          </p>
+          {{ contribute_form.amount.label(class='form-label fw-semibold') }}
+          <div class="input-group">
+            <span class="input-group-text text-muted small">R$</span>
+            {{ contribute_form.amount(class='form-control', id='contributeAmount') }}
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">Confirmar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('contributeModal').addEventListener('show.bs.modal', function (e) {
+  const btn = e.relatedTarget;
+  document.getElementById('contributeForm').action = '/goals/' + btn.dataset.goalId + '/contribute';
+  document.getElementById('contributeGoalName').textContent = btn.dataset.goalName;
+  document.getElementById('contributeRemaining').textContent = btn.dataset.remaining;
+  document.getElementById('contributeAmount').value = '';
+});
+</script>
+{% endblock %}

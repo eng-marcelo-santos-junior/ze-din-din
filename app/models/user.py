@@ -17,6 +17,8 @@ class User(UserMixin, db.Model):
         db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
+    family_memberships = db.relationship('FamilyMember', back_populates='user', lazy='dynamic')
+
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password, method='pbkdf2:sha256')
 
