@@ -3,6 +3,9 @@ import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Declarado no topo para que a análise estática do Vercel encontre 'app'
+app = None  # noqa: F841 — será sobrescrito abaixo
+
 try:
     from app import create_app
     app = create_app('production')
